@@ -4,6 +4,8 @@ echo "==========================================================================
 echo "[nf-core/circrna]: circRNA annotation script                                        "
 echo "[nf-core/circrna]: Author: Barry Digby                                              "
 echo "[nf-core/circrna]: Institution: National University of Ireland, Galway              "
+echo "[nf-core/circrna]: Author: Roman Reggiardo                                              "
+echo "[nf-core/circrna]: Institution: Stanford University              "
 echo "[nf-core/circrna]:                                                                  "
 echo "[nf-core/circrna]: MIT license                                                      "
 echo "===================================================================================="
@@ -11,15 +13,20 @@ echo "==========================================================================
 mkdir -p bed12
 
 EB=$1
+# RER
+# as 2 is now an individual line in an input file,
+# cat it to ge the line
 line=$(cat $2)
 
 name=$(echo $line | awk '{print $4}')
 count=$(echo $line | awk '{print $5}')
+# RER
+# all I've done here is make this one-shot instead of iterative
 touch ${name}.bed
-echo "$line" >> ${name}.bed_tmp
-sed 's/[\t]*$//' ${name}.bed_tmp > ${name}.bed && rm ${name}.bed_tmp
+echo "$line" >>${name}.bed_tmp
+sed 's/[\t]*$//' ${name}.bed_tmp >${name}.bed && rm ${name}.bed_tmp
 
-bedtools intersect -a filt.gtf -b ${name}.bed -s -f 1.00 > ${name}.gtf
+bedtools intersect -a filt.gtf -b ${name}.bed -s -f 1.00 >${name}.gtf
 
 start=$(echo $line | awk '{print $2}')
 stop=$(echo $line | awk '{print $3}')
@@ -27,17 +34,16 @@ stop=$(echo $line | awk '{print $3}')
 echo "[nf-core/circrna]: Starting analysis for: $name"
 
 # is the gtf file NOT (-s) empty? i.e did it overlap biotypes?
-if [[ -s ${name}.gtf ]];
-then
+if [[ -s ${name}.gtf ]]; then
 
     echo "[nf-core/circrna]: $name overlaps features in GTF file"
     echo "[nf-core/circrna]: Inspecting Genes..."
 
-    gene_id=$(awk -F'gene_id ' '{print $2}' ${name}.gtf | \
-    awk -F';' '{print $1}' | sed 's/"//g' | sort -u | paste -s -d, -)
+    gene_id=$(awk -F'gene_id ' '{print $2}' ${name}.gtf |
+        awk -F';' '{print $1}' | sed 's/"//g' | sort -u | paste -s -d, -)
 
-    tx_id=$(awk -F'transcript_id ' '{print $2}' ${name}.gtf | \
-    awk -F';' '{print $1}' | sed 's/"//g' | sort -u | paste -s -d, -)
+    tx_id=$(awk -F'transcript_id ' '{print $2}' ${name}.gtf |
+        awk -F';' '{print $1}' | sed 's/"//g' | sort -u | paste -s -d, -)
 
     echo "[nf-core/circrna]: Overlapping Gene IDs: $gene_id"
     echo "[nf-core/circrna]: Converting to BED12"
@@ -48,12 +54,11 @@ then
     # Attempting perfect exon boundary overlaps
     echo "[nf-core/circrna]: Attempting to fit circRNA to gene exon boundaries"
     awk -v OFS="\t" -v start="$start" -v stop="$stop" \
-    '{if($2==start && $3==stop) print $0}' ${name}_predtobed.bed | \
-    sort -rnk10 | head -n 1 > ${name}.bed12.bed
+        '{if($2==start && $3==stop) print $0}' ${name}_predtobed.bed |
+        sort -rnk10 | head -n 1 >${name}.bed12.bed
 
     # Resulting file not empty? i.e perfectly overlapped with exon boundaries?
-    if [[ -s ${name}.bed12.bed ]];
-    then
+    if [[ -s ${name}.bed12.bed ]]; then
         echo "[nf-core/circrna]: ${name} fits gene exons, is a circRNA"
         type="circRNA"
     else
@@ -62,11 +67,11 @@ then
         echo "[nf-core/circrna]: Investigating if EIciRNA or acceptable to take underlying transcript"
         echo "[nf-core/circrna]: Retrying with longest underlying transcript"
 
-        awk -v OFS="\t" '{$13 = $3 - $2; print}' ${name}_predtobed.bed | \
-        sort -rnk13 | cut -f13 --complement | head -n 1 > ${name}.bed12.bed_tmp
+        awk -v OFS="\t" '{$13 = $3 - $2; print}' ${name}_predtobed.bed |
+            sort -rnk13 | cut -f13 --complement | head -n 1 >${name}.bed12.bed_tmp
 
-        tx_len=$(awk -v OFS="\t" '{$13 = $3 - $2; print}' ${name}_predtobed.bed | \
-        sort -rnk13 | awk '{print $13}' | head -n 1)
+        tx_len=$(awk -v OFS="\t" '{$13 = $3 - $2; print}' ${name}_predtobed.bed |
+            sort -rnk13 | awk '{print $13}' | head -n 1)
 
         circ_len=$(awk -v OFS="\t" '{$7 = $3 - $2; print}' ${name}.bed | awk '{print $7}')
 
@@ -75,19 +80,18 @@ then
 
         difference=$(($circ_len - $tx_len))
 
-        if [[ $difference -gt $EB ]];
-        then
+        if [[ $difference -gt $EB ]]; then
 
             echo "[nf-core/circrna]: Transcript exon boundaries more than ${EB}bp off $name"
             echo "[nf-core/circrna]: Treating as EIciRNA"
 
             type="EIciRNA"
             block_count=1
-            block_size=$(($stop-$start))
+            block_size=$(($stop - $start))
             rgb="0,0,0"
             block_start=0
             awk -v OFS="\t" -v thick=$start -v rgb=$rgb -v count=$block_count -v start=$block_start -v size=$block_size \
-            '{print $0, thick, thick, rgb, count, size, start}' ${name}.bed > ${name}.bed12.bed
+                '{print $0, thick, thick, rgb, count, size, start}' ${name}.bed >${name}.bed12.bed
             rm ${name}.bed12.bed_tmp
         else
 
@@ -97,24 +101,24 @@ then
             mv ${name}.bed12.bed_tmp ${name}.bed12.bed
         fi
     fi
-    else
+else
 
-        echo "[nf-core/circrna]: $name returned no GTF overlaps."
-        echo "[nf-core/circrna]: Treating as an intronic circRNA"
+    echo "[nf-core/circrna]: $name returned no GTF overlaps."
+    echo "[nf-core/circrna]: Treating as an intronic circRNA"
 
-        gene_id="NA"
-        tx_id="NA"
-        type="ciRNA"
-        block_count=1
-        block_size=$(($stop-$start))
-        rgb="0,0,0"
-        block_start=0
-        awk -v OFS="\t" -v thick=$start -v rgb=$rgb -v count=$block_count -v start=$block_start -v size=$block_size \
-        '{print $0, thick, thick, rgb, count, size, start}' ${name}.bed > ${name}.bed12.bed
+    gene_id="NA"
+    tx_id="NA"
+    type="ciRNA"
+    block_count=1
+    block_size=$(($stop - $start))
+    rgb="0,0,0"
+    block_start=0
+    awk -v OFS="\t" -v thick=$start -v rgb=$rgb -v count=$block_count -v start=$block_start -v size=$block_size \
+        '{print $0, thick, thick, rgb, count, size, start}' ${name}.bed >${name}.bed12.bed
 fi
 # add type, geneid tx_id and count
-awk -v type="$type" -v gene="$gene_id" -v tx="$tx_id" -v count="$count" 'BEGIN{FS=OFS="\t"}{$5=count;$13=type;$14=gene;$15=tx}1' ${name}.bed12.bed > ${name}.bed12.bed_tmp
-awk -v OFS="\t" -v name=$name '{$4 = name; print}' ${name}.bed12.bed_tmp > ${name}.bed12.bed_tmp1
+awk -v type="$type" -v gene="$gene_id" -v tx="$tx_id" -v count="$count" 'BEGIN{FS=OFS="\t"}{$5=count;$13=type;$14=gene;$15=tx}1' ${name}.bed12.bed >${name}.bed12.bed_tmp
+awk -v OFS="\t" -v name=$name '{$4 = name; print}' ${name}.bed12.bed_tmp >${name}.bed12.bed_tmp1
 
 rm ${name}.bed12.bed
 rm ${name}.bed12.bed_tmp
