@@ -3,8 +3,11 @@ process ANNOTATION {
     label 'process_high'
 
     conda "bioconda::ucsc-gtftogenepred=377 bioconda::ucsc-genepredtobed=377 bioconda::bedtools=2.27.0"
+    // RER
+    // breaking change!!!
+    // this only works on sherlock
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
-        'https://depot.galaxyproject.org/singularity/mulled-v2-d7ee3552d06d8acebbc660507b48487c7369e221:07daadbfe8182aa3c974c7b78924d5c8730b922d-0' :
+        '/home/users/rreggiar/rreggiar_dev/singularity/sra/getreads_mamba_AMD.sif' :
         'quay.io/biocontainers/mulled-v2-d7ee3552d06d8acebbc660507b48487c7369e221:07daadbfe8182aa3c974c7b78924d5c8730b922d-0' }"
 
     input:
@@ -27,10 +30,23 @@ process ANNOTATION {
     prefix = task.ext.prefix ?: "${meta.id}"
     def VERSION = '377'
     """
+    # RER
+    # breaking change!!!
+    # this only works on sherlock
+    source /etc/conda/etc/profile.d/conda.sh
+    conda activate rreggiar
+
     grep -vf $biotypes $gtf > filt.gtf
     mv $bed circs.bed
+    # parallel; split bed into file per-line
+    split_input_bed.sh circs.bed \$(( ${task.cpus} * 1 ))
 
-    annotate_outputs.sh $exon_boundary &> ${prefix}.log
+    # parallel; process each bed file in parallel up to task.cpus (or more?)
+    ls -d splitBed/* | parallel -u -j \$(( ${task.cpus} * 1 )) annotate_outputs_parallel.sh ${exon_boundary} {} &> ${prefix}.log
+
+    # clean and combine output
+    aggregate_outputs.sh
+
     mv master_bed12.bed ${prefix}.bed.tmp
 
     awk -v FS="\t" '{print \$11}' ${prefix}.bed.tmp > mature_len.tmp
@@ -40,7 +56,7 @@ process ANNOTATION {
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-        awk: \$(awk --version | head -n1 | cut -d' ' -f3 | sed 's/,//g' )
+        awk: \$(awk -W version | head -n1 | cut -d' ' -f3 | sed 's/,//g' )
         bedtools: \$(bedtools --version | sed -e "s/bedtools v//g")
         ucsc: $VERSION
     END_VERSIONS
