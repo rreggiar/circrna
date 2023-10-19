@@ -166,7 +166,7 @@ workflow CIRCRNA_DISCOVERY {
     DCC_SJDB( DCC_1ST_PASS.out.tab.map{ meta, tab -> return tab }.collect().map{[[id: "dcc_sjdb"], it]}, bsj_reads )
     DCC_2ND_PASS( reads, star_index.collect(), DCC_SJDB.out.sjtab, star_ignore_sjdbgtf, seq_platform, seq_center )
 
-    if (reads.meta != 1){
+    if (reads -> return single_end != 1){
 
         mate1 = reads.map{ meta, reads -> return [ [id: meta.id, single_end: true], reads[0] ] }
         DCC_MATE1_1ST_PASS( mate1, star_index.collect(), gtf_tuple, star_ignore_sjdbgtf, seq_platform, seq_center )
