@@ -144,6 +144,7 @@ workflow CIRCRNA {
 
     // SUBORKFLOW:
     // Prepare index files &/or use iGenomes if chosen.
+    // NOTE packaging an arg here could enable the correct genome behavior....?
     PREPARE_GENOME (
         ch_fasta,
         ch_gtf
