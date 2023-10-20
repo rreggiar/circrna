@@ -169,12 +169,11 @@ workflow CIRCRNA_DISCOVERY {
     // reads.map{ meta, single_end -> return single_end }
 
     single_end = reads.map{ meta, reads -> return meta.single_end }
-    single_end.view()
 
     // [id:SRR15780495, single_end:true]
 
     // if ( reads.map{ it[0] }['single_end'] != "true" ) {
-    if ( single_end != "true" ) {
+    if ( single_end != true ) {
 
         mate1 = reads.map{ meta, reads -> return [ [id: meta.id, single_end: true], reads[0] ] }
         DCC_MATE1_1ST_PASS( mate1, star_index.collect(), gtf_tuple, star_ignore_sjdbgtf, seq_platform, seq_center )
