@@ -168,7 +168,7 @@ workflow CIRCRNA_DISCOVERY {
 
     // reads.map{ meta, single_end -> return single_end }
 
-    reads.map{ it[0], it[1] }.view()
+    reads.map{ it[0] }.get(1).view()
     // [id:SRR15780495, single_end:true]
 
     if ( reads.map{ it[0], it[1] }.get('single_end') != "true" ) {
