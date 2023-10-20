@@ -168,6 +168,8 @@ workflow CIRCRNA_DISCOVERY {
 
     // reads.map{ meta, single_end -> return single_end }
 
+    reads.map{ it[1] }.view()
+
     if ( reads.map{ it[1] } != 1 ) {
 
         mate1 = reads.map{ meta, reads -> return [ [id: meta.id, single_end: true], reads[0] ] }
