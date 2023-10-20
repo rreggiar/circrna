@@ -199,18 +199,18 @@ workflow CIRCRNA_DISCOVERY {
             .map{ id, meta, junction, mate1, mate2 -> return [ meta, junction, mate1, mate2 ]}
             .groupTuple()
 
+        ch_versions = ch_versions.mix(DCC_MATE1_1ST_PASS.out.versions)
+        ch_versions = ch_versions.mix(DCC_MATE1_SJDB.out.versions)
+        ch_versions = ch_versions.mix(DCC_MATE1_2ND_PASS.out.versions)
+        ch_versions = ch_versions.mix(DCC_MATE2_1ST_PASS.out.versions)
+        ch_versions = ch_versions.mix(DCC_MATE2_SJDB.out.versions)
+        ch_versions = ch_versions.mix(DCC_MATE2_2ND_PASS.out.versions)
     }
 
     dcc = dcc_stage.map{ it -> def meta = it[0]; if( meta.single_end ){ return [ it[0], it[1], [], [] ] } else { return it } }
     DCC( dcc, fasta, gtf )
     DCC_FILTER( DCC.out.txt.map{ meta, txt -> meta.tool = "dcc"; return [ meta, txt ] }, bsj_reads )
 
-    ch_versions = ch_versions.mix(DCC_MATE1_1ST_PASS.out.versions)
-    ch_versions = ch_versions.mix(DCC_MATE1_SJDB.out.versions)
-    ch_versions = ch_versions.mix(DCC_MATE1_2ND_PASS.out.versions)
-    ch_versions = ch_versions.mix(DCC_MATE2_1ST_PASS.out.versions)
-    ch_versions = ch_versions.mix(DCC_MATE2_SJDB.out.versions)
-    ch_versions = ch_versions.mix(DCC_MATE2_2ND_PASS.out.versions)
     ch_versions = ch_versions.mix(DCC.out.versions)
     ch_versions = ch_versions.mix(DCC_FILTER.out.versions)
 
