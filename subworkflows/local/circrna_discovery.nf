@@ -166,6 +166,9 @@ workflow CIRCRNA_DISCOVERY {
     DCC_SJDB( DCC_1ST_PASS.out.tab.map{ meta, tab -> return tab }.collect().map{[[id: "dcc_sjdb"], it]}, bsj_reads )
     DCC_2ND_PASS( reads, star_index.collect(), DCC_SJDB.out.sjtab, star_ignore_sjdbgtf, seq_platform, seq_center )
 
+
+    // this should all actually be a .branch
+    // maybe the whole workflow actually ....
     single_end = reads.map{ meta, reads -> return meta.single_end }
 
     if ( single_end ) {
