@@ -1,5 +1,5 @@
 process COUNTS_COMBINED {
-    label 'process_low'
+    label 'process_high'
 
     conda "conda-forge::r-base=3.6.3 conda-forge::python=2.7.15 conda-forge::r-argparser=0.6 conda-forge::r-dplyr=1.0.5"
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
