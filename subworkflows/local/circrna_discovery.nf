@@ -169,43 +169,43 @@ workflow CIRCRNA_DISCOVERY {
 
     // this should all actually be a .branch
     // maybe the whole workflow actually ....
-    single_end = reads.map{ meta, reads -> return meta.single_end }
+    // single_end = reads.map{ meta, reads -> return meta.single_end }
 
-    if ( single_end ) {
+    // if ( single_end ) {
 
-        dcc_stage = DCC_2ND_PASS.out.junction.map{ meta, junction -> return [ meta.id, meta, junction]}
-            .map{ id, meta, junction -> return [ meta, junction ]}
-            .groupTuple()
+        // dcc_stage = DCC_2ND_PASS.out.junction.map{ meta, junction -> return [ meta.id, meta, junction]}
+            // .map{ id, meta, junction -> return [ meta, junction ]}
+            // .groupTuple()
 
-    } else {
+    // } else {
 
-        mate1 = reads.map{ meta, reads -> return [ [id: meta.id, single_end: true], reads[0] ] }
-        DCC_MATE1_1ST_PASS( mate1, star_index.collect(), gtf_tuple, star_ignore_sjdbgtf, seq_platform, seq_center )
-        DCC_MATE1_SJDB( DCC_MATE1_1ST_PASS.out.tab.map{ meta, tab -> return tab }.collect().map{[[id: "mate1_sjdb"], it]}, bsj_reads )
-        DCC_MATE1_2ND_PASS( mate1, star_index.collect(), DCC_MATE1_SJDB.out.sjtab, star_ignore_sjdbgtf, seq_platform, seq_center )
+    mate1 = reads.map{ meta, reads -> return [ [id: meta.id, single_end: true], reads[0] ] }
+    DCC_MATE1_1ST_PASS( mate1, star_index.collect(), gtf_tuple, star_ignore_sjdbgtf, seq_platform, seq_center )
+    DCC_MATE1_SJDB( DCC_MATE1_1ST_PASS.out.tab.map{ meta, tab -> return tab }.collect().map{[[id: "mate1_sjdb"], it]}, bsj_reads )
+    DCC_MATE1_2ND_PASS( mate1, star_index.collect(), DCC_MATE1_SJDB.out.sjtab, star_ignore_sjdbgtf, seq_platform, seq_center )
 
-        mate2 = reads.map{ meta, reads -> return [ [id: meta.id, single_end: true], reads[1] ] }
-        DCC_MATE2_1ST_PASS( mate2, star_index.collect(), gtf_tuple, star_ignore_sjdbgtf, seq_platform, seq_center )
-        DCC_MATE2_SJDB( DCC_MATE2_1ST_PASS.out.tab.map{ meta, tab -> return tab }.collect().map{[[id: "mate2_sjdb"], it]}, bsj_reads )
-        DCC_MATE2_2ND_PASS( mate2, star_index.collect(), DCC_MATE2_SJDB.out.sjtab, star_ignore_sjdbgtf, seq_platform, seq_center )
+    mate2 = reads.map{ meta, reads -> return [ [id: meta.id, single_end: true], reads[1] ] }
+    DCC_MATE2_1ST_PASS( mate2, star_index.collect(), gtf_tuple, star_ignore_sjdbgtf, seq_platform, seq_center )
+    DCC_MATE2_SJDB( DCC_MATE2_1ST_PASS.out.tab.map{ meta, tab -> return tab }.collect().map{[[id: "mate2_sjdb"], it]}, bsj_reads )
+    DCC_MATE2_2ND_PASS( mate2, star_index.collect(), DCC_MATE2_SJDB.out.sjtab, star_ignore_sjdbgtf, seq_platform, seq_center )
 
-        dcc_stage = DCC_2ND_PASS.out.junction.map{ meta, junction -> return [ meta.id, meta, junction]}
-            .join(
-                DCC_MATE1_2ND_PASS.out.junction.map{ meta, junction -> return [ meta.id, junction] }
-            )
-            .join(
-                DCC_MATE2_2ND_PASS.out.junction.map{ meta, junction -> return [ meta.id, junction] }
-            )
-            .map{ id, meta, junction, mate1, mate2 -> return [ meta, junction, mate1, mate2 ]}
-            .groupTuple()
+    dcc_stage = DCC_2ND_PASS.out.junction.map{ meta, junction -> return [ meta.id, meta, junction]}
+        .join(
+            DCC_MATE1_2ND_PASS.out.junction.map{ meta, junction -> return [ meta.id, junction] }
+        )
+        .join(
+            DCC_MATE2_2ND_PASS.out.junction.map{ meta, junction -> return [ meta.id, junction] }
+        )
+        .map{ id, meta, junction, mate1, mate2 -> return [ meta, junction, mate1, mate2 ]}
+        .groupTuple()
 
-        ch_versions = ch_versions.mix(DCC_MATE1_1ST_PASS.out.versions)
-        ch_versions = ch_versions.mix(DCC_MATE1_SJDB.out.versions)
-        ch_versions = ch_versions.mix(DCC_MATE1_2ND_PASS.out.versions)
-        ch_versions = ch_versions.mix(DCC_MATE2_1ST_PASS.out.versions)
-        ch_versions = ch_versions.mix(DCC_MATE2_SJDB.out.versions)
-        ch_versions = ch_versions.mix(DCC_MATE2_2ND_PASS.out.versions)
-    }
+    ch_versions = ch_versions.mix(DCC_MATE1_1ST_PASS.out.versions)
+    ch_versions = ch_versions.mix(DCC_MATE1_SJDB.out.versions)
+    ch_versions = ch_versions.mix(DCC_MATE1_2ND_PASS.out.versions)
+    ch_versions = ch_versions.mix(DCC_MATE2_1ST_PASS.out.versions)
+    ch_versions = ch_versions.mix(DCC_MATE2_SJDB.out.versions)
+    ch_versions = ch_versions.mix(DCC_MATE2_2ND_PASS.out.versions)
+    // }
 
     dcc = dcc_stage.map{ it -> def meta = it[0]; if( meta.single_end ){ return [ it[0], it[1], [], [] ] } else { return it } }
     DCC( dcc, fasta, gtf )
