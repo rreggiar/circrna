@@ -37,7 +37,7 @@ process MERGE_TOOLS {
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
         r-base: \$(echo \$(R --version 2>&1) | sed 's/^.*R version //; s/ .*\$//')
-        argparser: \$(Rscript -e "library(arparser); cat(as.character(packageVersion('argparser')))")
+        argparser: \$(Rscript -e "library(argparser); cat(as.character(packageVersion('argparser')))")
         dplyr: \$(Rscript -e "library(dplyr); cat(as.character(packageVersion('dplyr')))")
         python: \$(python --version | sed -e 's/Python //g')
     END_VERSIONS
