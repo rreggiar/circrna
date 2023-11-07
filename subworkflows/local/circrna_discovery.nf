@@ -254,7 +254,7 @@ workflow CIRCRNA_DISCOVERY {
     // FASTA WORKFLOW:
     //
 
-    ANNOTATION.out.bed.view()
+    // ANNOTATION.out.bed.view()
     // anno_stage = ANNOTATION.out.bed.unique()
 
     FASTA( ANNOTATION.out.bed, fasta )
