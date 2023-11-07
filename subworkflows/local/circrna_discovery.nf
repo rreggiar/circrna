@@ -241,7 +241,7 @@ workflow CIRCRNA_DISCOVERY {
                                                             FIND_CIRC_FILTER.out.results,
                                                             CIRIQUANT_FILTER.out.results,
                                                             DCC_FILTER.out.results,
-                                                            MAPSPLICE_FILTER.out.results).unique()
+                                                            MAPSPLICE_FILTER.out.results)
 
     ANNOTATION( circrna_filtered, gtf, ch_biotypes.collect(), exon_boundary )
 
@@ -251,7 +251,7 @@ workflow CIRCRNA_DISCOVERY {
     // FASTA WORKFLOW:
     //
 
-    // ANNOTATION.out.bed.view()
+    ANNOTATION.out.bed.view()
     // anno_stage = ANNOTATION.out.bed.unique()
 
     FASTA( ANNOTATION.out.bed, fasta )
