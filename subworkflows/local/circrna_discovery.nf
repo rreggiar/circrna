@@ -236,6 +236,9 @@ workflow CIRCRNA_DISCOVERY {
 
     ch_biotypes = Channel.fromPath("${projectDir}/bin/unwanted_biotypes.txt")
 
+    DCC_FILTER.out.result.view()
+    CIRIQUANT_FILTER.out.results.view()
+
     circrna_filtered = CIRCEXPLORER2_FLT.out.results.mix(SEGEMEHL_FILTER.out.results,
                                                             CIRCRNA_FINDER_FILTER.out.results,
                                                             FIND_CIRC_FILTER.out.results,
