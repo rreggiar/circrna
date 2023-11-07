@@ -243,7 +243,8 @@ workflow CIRCRNA_DISCOVERY {
     tools_selected = params.tool.split(',').collect{it.trim().toLowerCase()}
 
     println(tools_selected.size())
-    println(reads.size())
+    // doesn't work
+    // println(reads.size())
 
     circrna_filtered = CIRCEXPLORER2_FLT.out.results.mix(SEGEMEHL_FILTER.out.results,
                                                          CIRCRNA_FINDER_FILTER.out.results,
