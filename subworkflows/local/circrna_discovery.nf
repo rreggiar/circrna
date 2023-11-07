@@ -238,7 +238,7 @@ workflow CIRCRNA_DISCOVERY {
 
     // DCC_FILTER.out.results.view()
     CIRIQUANT_FILTER.out.results.view()
-    CIRIQUANT_FILTER.out.results.getClass()
+    println(CIRIQUANT_FILTER.out.results.getClass())
 
     circrna_filtered = CIRCEXPLORER2_FLT.out.results.mix(SEGEMEHL_FILTER.out.results,
                                                             CIRCRNA_FINDER_FILTER.out.results,
