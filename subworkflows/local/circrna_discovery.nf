@@ -237,15 +237,22 @@ workflow CIRCRNA_DISCOVERY {
     ch_biotypes = Channel.fromPath("${projectDir}/bin/unwanted_biotypes.txt")
 
     // DCC_FILTER.out.results.view()
-    CIRIQUANT_FILTER.out.results.view()
-    println(CIRIQUANT_FILTER.out.results.getClass())
+    // CIRIQUANT_FILTER.out.results.view()
+    // println(CIRIQUANT_FILTER.out.results.getClass())
+
+    println(tools_selected.size())
+    println(reads.size())
 
     circrna_filtered = CIRCEXPLORER2_FLT.out.results.mix(SEGEMEHL_FILTER.out.results,
-                                                            CIRCRNA_FINDER_FILTER.out.results,
-                                                            FIND_CIRC_FILTER.out.results,
-                                                            CIRIQUANT_FILTER.out.results,
-                                                            DCC_FILTER.out.results,
-                                                            MAPSPLICE_FILTER.out.results)
+                                                         CIRCRNA_FINDER_FILTER.out.results,
+                                                         FIND_CIRC_FILTER.out.results,
+                                                         CIRIQUANT_FILTER.out.results,
+                                                         DCC_FILTER.out.results,
+                                                         MAPSPLICE_FILTER.out.results).groupTuple( by: 0 )
+
+    circrna_filtered.view()
+
+
 
     ANNOTATION( circrna_filtered, gtf, ch_biotypes.collect(), exon_boundary )
 
