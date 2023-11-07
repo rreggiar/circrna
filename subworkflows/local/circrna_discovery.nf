@@ -240,6 +240,8 @@ workflow CIRCRNA_DISCOVERY {
     // CIRIQUANT_FILTER.out.results.view()
     // println(CIRIQUANT_FILTER.out.results.getClass())
 
+    tools_selected = params.tool.split(',').collect{it.trim().toLowerCase()}
+
     println(tools_selected.size())
     println(reads.size())
 
@@ -281,7 +283,6 @@ workflow CIRCRNA_DISCOVERY {
                                                     DCC_FILTER.out.matrix,
                                                     MAPSPLICE_FILTER.out.matrix)
 
-    tools_selected = params.tool.split(',').collect{it.trim().toLowerCase()}
 
     if( tools_selected.size() > 1){
 
