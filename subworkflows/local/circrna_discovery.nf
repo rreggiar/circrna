@@ -252,10 +252,10 @@ workflow CIRCRNA_DISCOVERY {
     //
 
     // ANNOTATION.out.bed.view()
-    anno_stage = ANNOTATION.out.groupTuple()
+    anno_stage = ANNOTATION.out.bed.unique()
 
     // FASTA( ANNOTATION.out.bed, fasta )
-    FASTA( anno_stage.bed, fasta )
+    FASTA( anno_stage, fasta )
 
     ch_versions = ch_versions.mix(FASTA.out.versions)
 
