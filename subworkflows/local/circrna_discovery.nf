@@ -98,6 +98,8 @@ workflow CIRCRNA_DISCOVERY {
     STAR_SJDB( sjdb, bsj_reads )
     STAR_2ND_PASS( reads, star_index.collect(), STAR_SJDB.out.sjtab, star_ignore_sjdbgtf, seq_platform, seq_center )
 
+    STAR_2ND_PASS.out.view()
+
     ch_versions = ch_versions.mix(STAR_1ST_PASS.out.versions)
     ch_versions = ch_versions.mix(STAR_2ND_PASS.out.versions)
 
@@ -111,7 +113,7 @@ workflow CIRCRNA_DISCOVERY {
     circexplorer2_filter = CIRCEXPLORER2_ANN.out.txt.map{ meta, txt -> meta.tool = "circexplorer2"; return [ meta, txt ] }
     CIRCEXPLORER2_FLT( circexplorer2_filter, bsj_reads )
 
-    CIRCEXPLORER2_FLT.out.results.view()
+    // CIRCEXPLORER2_FLT.out.results.view()
 
     ch_versions = ch_versions.mix(CIRCEXPLORER2_REF.out.versions)
     ch_versions = ch_versions.mix(CIRCEXPLORER2_PAR.out.versions)
@@ -126,7 +128,7 @@ workflow CIRCRNA_DISCOVERY {
     circrna_finder_filter = circrna_finder_stage.map{ meta, sam, junction, tab -> meta.tool = "circrna_finder"; return [ meta, sam, junction, tab ] }
     CIRCRNA_FINDER_FILTER( circrna_finder_filter, fasta, bsj_reads )
 
-    CIRCRNA_FINDER_FILTER.out.results.view()
+    // CIRCRNA_FINDER_FILTER.out.results.view()
 
     ch_versions = ch_versions.mix(CIRCRNA_FINDER_FILTER.out.versions)
 
@@ -159,7 +161,7 @@ workflow CIRCRNA_DISCOVERY {
     CIRIQUANT( reads, CIRIQUANT_YML.out.yml.collect() )
     CIRIQUANT_FILTER( CIRIQUANT.out.gtf.map{ meta, gtf -> meta.tool = "ciriquant"; return [ meta, gtf ] }, bsj_reads )
 
-    CIRIQUANT_FILTER.out.results.view()
+    // CIRIQUANT_FILTER.out.results.view()
 
     ch_versions = ch_versions.mix(CIRIQUANT.out.versions)
     ch_versions = ch_versions.mix(CIRIQUANT_FILTER.out.versions)
@@ -217,7 +219,7 @@ workflow CIRCRNA_DISCOVERY {
     DCC( dcc, fasta, gtf )
     DCC_FILTER( DCC.out.txt.map{ meta, txt -> meta.tool = "dcc"; return [ meta, txt ] }, bsj_reads )
 
-    DCC_FILTER.out.results.view()
+    // DCC_FILTER.out.results.view()
 
     ch_versions = ch_versions.mix(DCC.out.versions)
     ch_versions = ch_versions.mix(DCC_FILTER.out.versions)
