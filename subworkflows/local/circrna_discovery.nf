@@ -77,7 +77,6 @@ workflow CIRCRNA_DISCOVERY {
     //
     // SEGEMEHL WORKFLOW:
     //
-    reads = reads.groupTuple( by:0 )
 
     SEGEMEHL_ALIGN( reads, fasta, segemehl_index )
     segemehl_filter = SEGEMEHL_ALIGN.out.results.map{ meta, results ->  meta.tool = "segemehl"; return [ meta, results ] }
@@ -126,9 +125,10 @@ workflow CIRCRNA_DISCOVERY {
 
     circrna_finder_stage = STAR_2ND_PASS.out.sam.join( STAR_2ND_PASS.out.junction).join(STAR_2ND_PASS.out.tab)
     circrna_finder_filter = circrna_finder_stage.map{ meta, sam, junction, tab -> meta.tool = "circrna_finder"; return [ meta, sam, junction, tab ] }.groupTuple( by:0 )
+    circrna_finder_filter.view()
     CIRCRNA_FINDER_FILTER( circrna_finder_filter, fasta, bsj_reads )
 
-    CIRCRNA_FINDER_FILTER.out.results.view()
+    // CIRCRNA_FINDER_FILTER.out.results.view()
 
     ch_versions = ch_versions.mix(CIRCRNA_FINDER_FILTER.out.versions)
 
