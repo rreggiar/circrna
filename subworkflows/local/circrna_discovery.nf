@@ -98,8 +98,6 @@ workflow CIRCRNA_DISCOVERY {
     STAR_SJDB( sjdb, bsj_reads )
     STAR_2ND_PASS( reads, star_index.collect(), STAR_SJDB.out.sjtab, star_ignore_sjdbgtf, seq_platform, seq_center )
 
-    STAR_2ND_PASS.out.view()
-
     ch_versions = ch_versions.mix(STAR_1ST_PASS.out.versions)
     ch_versions = ch_versions.mix(STAR_2ND_PASS.out.versions)
 
