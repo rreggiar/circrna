@@ -91,7 +91,7 @@ include { MULTIQC                     } from '../modules/nf-core/multiqc/main'
 include { CUSTOM_DUMPSOFTWAREVERSIONS } from '../modules/nf-core/custom/dumpsoftwareversions/main'
 include { CAT_FASTQ                   } from '../modules/nf-core/cat/fastq/main'
 include { ANNOTATION                  } from '../modules/local/annotation/full_annotation/main'
-
+include { FASTA                            } from '../modules/local/fasta/main'
 // SUBWORKFLOWS:
 include { FASTQC_TRIMGALORE } from '../subworkflows/nf-core/fastqc_trimgalore'
 /*
@@ -218,8 +218,9 @@ workflow CIRCRNA {
     circrna_filtered = CIRCRNA_DISCOVERY_CIRIQUANT.out.ciriquant_results
 
     ch_biotypes = Channel.fromPath("${projectDir}/bin/unwanted_biotypes.txt")
-    ANNOTATION( circrna_filtered, gtf, ch_biotypes.collect(), exon_boundary )
+    ANNOTATION( circrna_filtered, ch_gtf, ch_biotypes.collect(), params.exon_boundary )
 
+    FASTA( ANNOTATION.out.bed, ch_fasta )
 
     //
     // 3. miRNA prediction
