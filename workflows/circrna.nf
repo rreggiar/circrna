@@ -210,7 +210,9 @@ workflow CIRCRNA {
     // ciriquant_meta: sample info in list
     // ciriquant_bed: path to bed
 
-    CIRCRNA_DISCOVERY_CIRIQUANT.out.ciriquant_bed.join(CIRCRNA_DISCOVERY_CIRIQUANT.out.ciriquant_meta).view()
+    // CIRCRNA_DISCOVERY_CIRIQUANT.out.ciriquant_bed.join(CIRCRNA_DISCOVERY_CIRIQUANT.out.ciriquant_meta).view()
+
+    CIRCRNA_DISCOVERY_CIRIQUANT.out.ciriquant_results.view()
 
     ch_versions = ch_versions.mix(CIRCRNA_DISCOVERY.out.versions)
 

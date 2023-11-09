@@ -46,8 +46,9 @@ workflow CIRCRNA_DISCOVERY_CIRIQUANT {
     ch_versions = ch_versions.mix(CIRIQUANT_FILTER.out.versions)
 
     emit:
-    ciriquant_meta = CIRIQUANT_FILTER.out[0]
-    ciriquant_bed = CIRIQUANT_FILTER.out[1]
+    ciriquant_results = CIRIQUANT_FILTER.out.results
+    //ciriquant_meta = CIRIQUANT_FILTER.out[0]
+    //ciriquant_bed = CIRIQUANT_FILTER.out[1]
     // circrna_bed12 = ANNOTATION.out.bed
     // fasta = FASTA.out.analysis_fasta
     versions = ch_versions
