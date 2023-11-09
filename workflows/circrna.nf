@@ -76,6 +76,7 @@ ch_multiqc_custom_methods_description = params.multiqc_methods_description ? fil
 include { INPUT_CHECK       } from '../subworkflows/local/input_check'
 include { PREPARE_GENOME    } from '../subworkflows/local/prepare_genome'
 include { CIRCRNA_DISCOVERY } from '../subworkflows/local/circrna_discovery'
+include { CIRCRNA_DISCOVERY_CIRIQUANT } from '../subworkflows/local/circrna_discovery_ciriquant'
 include { MIRNA_PREDICTION  } from '../subworkflows/local/mirna_prediction'
 include { DIFFERENTIAL_EXPRESSION } from '../subworkflows/local/differential_expression'
 
@@ -144,7 +145,7 @@ workflow CIRCRNA {
 
     // SUBORKFLOW:
     // Prepare index files &/or use iGenomes if chosen.
-    // NOTE packaging an arg here could enable the correct genome behavior....?
+    // NOTE packaging an arg here could enable the correct genome behavior
     PREPARE_GENOME (
         ch_fasta,
         ch_gtf
@@ -193,6 +194,20 @@ workflow CIRCRNA {
         params.duplicates_fun,
         params.exon_boundary
     )
+
+    CIRCRNA_DISCOVERY_CIRIQUANT(
+        FASTQC_TRIMGALORE.out.reads,
+        ch_fasta,
+        ch_gtf,
+        bwa_index,
+        hisat2_index,
+        params.bsj_reads,
+        params.tool_filter,
+        params.duplicates_fun,
+        params.exon_boundary
+    )
+
+    CIRCRNA_DISCOVERY_CIRIQUANT.out.view()
 
     ch_versions = ch_versions.mix(CIRCRNA_DISCOVERY.out.versions)
 
