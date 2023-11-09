@@ -259,9 +259,10 @@ workflow CIRCRNA_DISCOVERY {
     circrna_filtered = CIRCEXPLORER2_FLT.out.results.mix(SEGEMEHL_FILTER.out.results,
                                                          CIRCRNA_FINDER_FILTER.out.results,
                                                          FIND_CIRC_FILTER.out.results,
-                                                         CIRIQUANT_FILTER.out.results,
                                                          DCC_FILTER.out.results,
                                                          MAPSPLICE_FILTER.out.results).groupTuple( by: 0 )
+
+                                                         //CIRIQUANT_FILTER.out.results,
 
     circrna_filtered.view()
 
