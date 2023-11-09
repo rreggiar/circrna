@@ -90,6 +90,7 @@ include { DIFFERENTIAL_EXPRESSION } from '../subworkflows/local/differential_exp
 include { MULTIQC                     } from '../modules/nf-core/multiqc/main'
 include { CUSTOM_DUMPSOFTWAREVERSIONS } from '../modules/nf-core/custom/dumpsoftwareversions/main'
 include { CAT_FASTQ                   } from '../modules/nf-core/cat/fastq/main'
+include { ANNOTATION                  } from '../modules/local/annotation/full_annotation/main'
 
 // SUBWORKFLOWS:
 include { FASTQC_TRIMGALORE } from '../subworkflows/nf-core/fastqc_trimgalore'
@@ -214,7 +215,11 @@ workflow CIRCRNA {
 
     CIRCRNA_DISCOVERY_CIRIQUANT.out.ciriquant_results.view()
 
-    ch_versions = ch_versions.mix(CIRCRNA_DISCOVERY.out.versions)
+    circrna_filtered = CIRCRNA_DISCOVERY_CIRIQUANT.out.ciriquant_results
+
+    ch_biotypes = Channel.fromPath("${projectDir}/bin/unwanted_biotypes.txt")
+    ANNOTATION( circrna_filtered, gtf, ch_biotypes.collect(), exon_boundary )
+
 
     //
     // 3. miRNA prediction
