@@ -110,6 +110,7 @@ workflow CIRCRNA_DISCOVERY {
     CIRCEXPLORER2_REF( gtf )
     CIRCEXPLORER2_PAR( STAR_2ND_PASS.out.junction )
     CIRCEXPLORER2_ANN( CIRCEXPLORER2_PAR.out.junction, fasta, CIRCEXPLORER2_REF.out.txt )
+    reads.view()
     circexplorer2_filter = CIRCEXPLORER2_ANN.out.txt.map{ meta, txt -> meta.tool = "circexplorer2"; return [ meta, txt ] }
     CIRCEXPLORER2_FLT( circexplorer2_filter, bsj_reads )
 
