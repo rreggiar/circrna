@@ -206,8 +206,11 @@ workflow CIRCRNA {
         params.duplicates_fun,
         params.exon_boundary
     )
+    // return:
+    // ciriquant_meta: sample info in list
+    // ciriquant_bed: path to bed
 
-    // CIRCRNA_DISCOVERY_CIRIQUANT.out.ciriquant_bed.view()
+    CIRCRNA_DISCOVERY_CIRIQUANT.out.ciriquant_bed.join(CIRCRNA_DISCOVERY_CIRIQUANT.out.ciriquant_meta).view()
 
     ch_versions = ch_versions.mix(CIRCRNA_DISCOVERY.out.versions)
 
