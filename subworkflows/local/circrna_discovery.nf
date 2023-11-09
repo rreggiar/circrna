@@ -97,6 +97,7 @@ workflow CIRCRNA_DISCOVERY {
     STAR_1ST_PASS( reads, star_index.collect(), gtf_tuple, star_ignore_sjdbgtf, seq_platform, seq_center)
     sjdb = STAR_1ST_PASS.out.tab.map{ meta, tab -> return tab }.collect().map{[[id: "star_sjdb"], it]}
     STAR_SJDB( sjdb, bsj_reads )
+    reads.view()
     STAR_2ND_PASS( reads, star_index.collect(), STAR_SJDB.out.sjtab, star_ignore_sjdbgtf, seq_platform, seq_center )
 
     ch_versions = ch_versions.mix(STAR_1ST_PASS.out.versions)
@@ -123,7 +124,7 @@ workflow CIRCRNA_DISCOVERY {
     // CIRCRNA_FINDER WORKFLOW:
     //
 
-    circrna_finder_stage = STAR_2ND_PASS.out.sam.join( STAR_2ND_PASS.out.junction).join(STAR_2ND_PASS.out.tab)
+    circrna_finder_stage = STAR_2ND_PASS.out.sam.join( STAR_2ND_PASS.out.junction).join(STAR_2ND_PASS.out.tab).groupTuple( by:0 )
     circrna_finder_stage.view()
     circrna_finder_filter = circrna_finder_stage.map{ meta, sam, junction, tab -> meta.tool = "circrna_finder"; return [ meta, sam, junction, tab ] }.groupTuple( by:0 )
     CIRCRNA_FINDER_FILTER( circrna_finder_filter, fasta, bsj_reads )
