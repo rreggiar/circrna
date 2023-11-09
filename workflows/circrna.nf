@@ -207,7 +207,7 @@ workflow CIRCRNA {
         params.exon_boundary
     )
 
-    CIRCRNA_DISCOVERY_CIRIQUANT.out.view()
+    // CIRCRNA_DISCOVERY_CIRIQUANT.out.ciriquant_bed.view()
 
     ch_versions = ch_versions.mix(CIRCRNA_DISCOVERY.out.versions)
 
