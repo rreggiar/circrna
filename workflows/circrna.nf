@@ -168,11 +168,13 @@ workflow CIRCRNA {
     ch_versions    = ch_versions.mix(PREPARE_GENOME.out.versions)
 
     // MODULE: Run FastQC, trimgalore!
+    ch_filtered_reads = Channel.empty()
     FASTQC_TRIMGALORE (
         ch_cat_fastq,
         params.skip_fastqc,
         params.skip_trimming
     )
+    ch_filtered_reads = FASTQC_TRIMGALORE.out.reads
     ch_versions = ch_versions.mix(FASTQC_TRIMGALORE.out.versions)
     ch_reports  = ch_reports.mix(FASTQC_TRIMGALORE.out.trim_zip.collect{it[1]}.ifEmpty([]))
     ch_reports  = ch_reports.mix(FASTQC_TRIMGALORE.out.trim_log.collect{it[1]}.ifEmpty([]))
@@ -205,7 +207,7 @@ workflow CIRCRNA {
 
 
         CIRCRNA_DISCOVERY_STAR_ALIGN(
-            FASTQC_TRIMGALORE.out.reads,
+            ch_filtered_reads,
             ch_fasta,
             ch_gtf,
             star_index,
@@ -232,14 +234,14 @@ workflow CIRCRNA {
 
         CIRCRNA_DISCOVERY_CIRCRNA_FINDER.out.circrna_finder_results.view()
 
-        ch_ciriquant_results = CIRCRNA_DISCOVERY_CIRCRNA_FINDER.out.circrna_finder_results
+        ch_circrna_finder_results = CIRCRNA_DISCOVERY_CIRCRNA_FINDER.out.circrna_finder_results
     }
 
     ch_ciriquant_results = Channel.empty()
     if ( params.tool.contains('ciriquant') ) {
 
         CIRCRNA_DISCOVERY_CIRIQUANT(
-            FASTQC_TRIMGALORE.out.reads,
+            ch_filtered_reads,
             ch_fasta,
             ch_gtf,
             bwa_index,
@@ -282,7 +284,7 @@ workflow CIRCRNA {
     // ch_ensembl_database_map = params.module.contains('differential_expression') ? Channel.fromPath("${projectDir}/bin/ensembl_database_map.txt") : Channel.empty()
 
     // DIFFERENTIAL_EXPRESSION(
-        // FASTQC_TRIMGALORE.out.reads,
+        // ch_filtered_reads,
         // ch_gtf,
         // ch_fasta,
         // hisat2_index,
