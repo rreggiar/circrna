@@ -77,6 +77,8 @@ include { INPUT_CHECK       } from '../subworkflows/local/input_check'
 include { PREPARE_GENOME    } from '../subworkflows/local/prepare_genome'
 include { CIRCRNA_DISCOVERY } from '../subworkflows/local/circrna_discovery'
 include { CIRCRNA_DISCOVERY_CIRIQUANT } from '../subworkflows/local/circrna_discovery_ciriquant'
+include { CIRCRNA_DISCOVERY_CIRCRNA_FINDER } from '../subworkflows/local/circrna_discovery_circrna_finder'
+include { CIRCRNA_DISCOVERY_STAR_ALIGN } from '../subworkflows/local/circrna_discovery_star_align'
 include { MIRNA_PREDICTION  } from '../subworkflows/local/mirna_prediction'
 include { DIFFERENTIAL_EXPRESSION } from '../subworkflows/local/differential_expression'
 
@@ -91,7 +93,7 @@ include { MULTIQC                     } from '../modules/nf-core/multiqc/main'
 include { CUSTOM_DUMPSOFTWAREVERSIONS } from '../modules/nf-core/custom/dumpsoftwareversions/main'
 include { CAT_FASTQ                   } from '../modules/nf-core/cat/fastq/main'
 include { ANNOTATION                  } from '../modules/local/annotation/full_annotation/main'
-include { FASTA                            } from '../modules/local/fasta/main'
+include { FASTA                       } from '../modules/local/fasta/main'
 // SUBWORKFLOWS:
 include { FASTQC_TRIMGALORE } from '../subworkflows/nf-core/fastqc_trimgalore'
 /*
