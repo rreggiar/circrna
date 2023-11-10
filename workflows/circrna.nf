@@ -227,7 +227,6 @@ workflow CIRCRNA {
             ch_star_align_junction,
             ch_star_align_tab,
             ch_fasta,
-            ch_gtf,
             params.bsj_reads
         )
 

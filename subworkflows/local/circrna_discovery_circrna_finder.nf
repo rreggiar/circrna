@@ -12,7 +12,6 @@ workflow CIRCRNA_DISCOVERY_CIRCRNA_FINDER {
     main:
     ch_versions = Channel.empty()
     ch_fasta = Channel.fromPath(fasta)
-    ch_gtf   = Channel.fromPath(gtf)
 
     //
     // CIRCRNA_FINDER WORKFLOW:
