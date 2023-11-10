@@ -11,26 +11,11 @@ workflow CIRCRNA_DISCOVERY_CIRIQUANT {
     bwa_index
     hisat2_index
     bsj_reads
-    tool_filter
-    duplicates_fun
-    exon_boundary
 
     main:
     ch_versions = Channel.empty()
     ch_fasta = Channel.fromPath(fasta)
     ch_gtf   = Channel.fromPath(gtf)
-
-    ch_fasta.map{ it ->
-        meta = [:]
-        meta.id = it.simpleName
-        return [ meta, [it] ]
-    }.set{ fasta_tuple }
-
-    gtf_tuple = ch_gtf.map{ it ->
-        meta = [:]
-        meta.id = it.simpleName
-        return [ meta, [it] ]
-    }.collect()
 
     //
     // CIRIQUANT WORKFLOW:
@@ -47,11 +32,5 @@ workflow CIRCRNA_DISCOVERY_CIRIQUANT {
 
     emit:
     ciriquant_results = CIRIQUANT_FILTER.out.results
-    //ciriquant_meta = CIRIQUANT_FILTER.out[0]
-    //ciriquant_bed = CIRIQUANT_FILTER.out[1]
-    // circrna_bed12 = ANNOTATION.out.bed
-    // fasta = FASTA.out.analysis_fasta
     versions = ch_versions
-    // dea_matrix
-    // clr_matrix
 }

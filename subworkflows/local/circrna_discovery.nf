@@ -294,7 +294,7 @@ workflow CIRCRNA_DISCOVERY {
                                                     DCC_FILTER.out.matrix,
                                                     MAPSPLICE_FILTER.out.matrix)
 
-                                                    //CIRIQUANT_FILTER.out.matrix,
+                                                    // CIRIQUANT_FILTER.out.matrix,
 
 
     if( tools_selected.size() > 1){
