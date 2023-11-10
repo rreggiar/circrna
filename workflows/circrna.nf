@@ -223,7 +223,7 @@ workflow CIRCRNA {
 
         CIRCRNA_DISCOVERY_CIRCRNA_FINDER(
             ch_star_align_sam,
-            ch_star_align_junction
+            ch_star_align_junction,
             ch_star_align_tab,
             ch_fasta,
             ch_gtf,
