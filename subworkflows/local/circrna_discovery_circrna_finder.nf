@@ -18,7 +18,6 @@ workflow CIRCRNA_DISCOVERY_CIRCRNA_FINDER {
     //
 
     circrna_finder_stage = sam.join( junction ).join( tab )
-    circrna_finder_stage.view()
     circrna_finder_filter = circrna_finder_stage.map{ meta, sam, junction, tab -> meta.tool = "circrna_finder"; return [ meta, sam, junction, tab ] }.groupTuple( by:0 )
     CIRCRNA_FINDER_FILTER( circrna_finder_filter, fasta, bsj_reads )
 
