@@ -175,6 +175,7 @@ workflow CIRCRNA {
         params.skip_trimming
     )
     ch_filtered_reads = FASTQC_TRIMGALORE.out.reads
+    ch_filtered_reads.view()
     ch_versions = ch_versions.mix(FASTQC_TRIMGALORE.out.versions)
     ch_reports  = ch_reports.mix(FASTQC_TRIMGALORE.out.trim_zip.collect{it[1]}.ifEmpty([]))
     ch_reports  = ch_reports.mix(FASTQC_TRIMGALORE.out.trim_log.collect{it[1]}.ifEmpty([]))
