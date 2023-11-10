@@ -1,6 +1,6 @@
 include { CIRCRNA_FINDER_FILTER            } from '../../modules/local/circrna_finder/filter/main'
 
-workflow CIRCRNA_DISCOVERY {
+workflow CIRCRNA_DISCOVERY_CIRCRNA_FINDER {
 
     take:
     sam

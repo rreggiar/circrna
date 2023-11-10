@@ -2,7 +2,7 @@ include { STAR_ALIGN as STAR_1ST_PASS      } from '../../modules/nf-core/star/al
 include { STAR_ALIGN as STAR_2ND_PASS      } from '../../modules/nf-core/star/align/main'
 include { SJDB as STAR_SJDB                } from '../../modules/local/star/sjdb/main'
 
-workflow CIRCRNA_DISCOVERY {
+workflow CIRCRNA_DISCOVERY_STAR_ALIGN {
 
     take:
     reads
