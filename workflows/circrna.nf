@@ -198,11 +198,11 @@ workflow CIRCRNA {
         // params.exon_boundary
     // )
 
+    ch_star_align_sam = Channel.empty()
+    ch_star_align_junction = Channel.empty()
+    ch_star_align_tab = Channel.empty()
     if ( ( params.tool.contains('circexplorer2') || params.tool.contains('circrna_finder') ) ) {
 
-        ch_star_align_sam = Channel.empty()
-        ch_star_align_junction = Channel.empty()
-        ch_star_align_tab = Channel.empty()
 
         CIRCRNA_DISCOVERY_STAR_ALIGN(
             FASTQC_TRIMGALORE.out.reads,
@@ -218,9 +218,9 @@ workflow CIRCRNA {
     }
 
 
+    ch_circrna_finder_results = Channel.empty()
     if ( params.tool.contains('circrna_finder') ) {
 
-        ch_circrna_finder_results = Channel.empty()
 
         CIRCRNA_DISCOVERY_CIRCRNA_FINDER(
             ch_star_align_sam,
@@ -235,10 +235,8 @@ workflow CIRCRNA {
         ch_ciriquant_results = CIRCRNA_DISCOVERY_CIRCRNA_FINDER.out.circrna_finder_results
     }
 
-
+    ch_ciriquant_results = Channel.empty()
     if ( params.tool.contains('ciriquant') ) {
-
-        ch_ciriquant_results = Channel.empty()
 
         CIRCRNA_DISCOVERY_CIRIQUANT(
             FASTQC_TRIMGALORE.out.reads,
