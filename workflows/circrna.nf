@@ -198,7 +198,7 @@ workflow CIRCRNA {
         // params.exon_boundary
     // )
 
-    if ( params.tool.contains('circexplorer2') || params.tool.contains('circrna_finder') ) {
+    if ( ( params.tool.contains('circexplorer2') || params.tool.contains('circrna_finder') ) ) {
 
         ch_star_align_sam = Channel.empty()
         ch_star_align_junction = Channel.empty()
