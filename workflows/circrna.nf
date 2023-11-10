@@ -208,7 +208,8 @@ workflow CIRCRNA {
             FASTQC_TRIMGALORE.out.reads,
             ch_fasta,
             ch_gtf,
-            star_index
+            star_index,
+            params.bsj_reads
         )
 
         ch_star_align_sam = CIRCRNA_DISCOVERY_STAR_ALIGN.out.sam

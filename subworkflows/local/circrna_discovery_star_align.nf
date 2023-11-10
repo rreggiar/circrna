@@ -9,6 +9,7 @@ workflow CIRCRNA_DISCOVERY_STAR_ALIGN {
     fasta
     gtf
     star_index
+    bsj_reads
 
     main:
     ch_versions = Channel.empty()
