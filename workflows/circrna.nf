@@ -198,7 +198,7 @@ workflow CIRCRNA {
 
     CIRCRNA_DISCOVERY_CIRIQUANT(
         FASTQC_TRIMGALORE.out.reads,
-        ch_fasta,
+        Channel.value(ch_fasta),
         ch_gtf,
         bwa_index,
         hisat2_index,
