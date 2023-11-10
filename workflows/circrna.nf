@@ -269,36 +269,36 @@ workflow CIRCRNA {
     // 3. miRNA prediction
     //
 
-    MIRNA_PREDICTION(
-        CIRCRNA_DISCOVERY.out.fasta,
-        CIRCRNA_DISCOVERY.out.circrna_bed12,
-        ch_mature
-    )
+    // MIRNA_PREDICTION(
+        // CIRCRNA_DISCOVERY.out.fasta,
+        // CIRCRNA_DISCOVERY.out.circrna_bed12,
+        // ch_mature
+    // )
 
-    ch_versions = ch_versions.mix(MIRNA_PREDICTION.out.versions)
+    // ch_versions = ch_versions.mix(MIRNA_PREDICTION.out.versions)
 
     //
     // 4. Differential expression tests
     //
 
-    ch_ensembl_database_map = params.module.contains('differential_expression') ? Channel.fromPath("${projectDir}/bin/ensembl_database_map.txt") : Channel.empty()
+    // ch_ensembl_database_map = params.module.contains('differential_expression') ? Channel.fromPath("${projectDir}/bin/ensembl_database_map.txt") : Channel.empty()
 
-    DIFFERENTIAL_EXPRESSION(
-        FASTQC_TRIMGALORE.out.reads,
-        ch_gtf,
-        ch_fasta,
-        hisat2_index,
-        PREPARE_GENOME.out.splice_sites,
-        ch_phenotype,
-        CIRCRNA_DISCOVERY.out.dea_matrix,
-        CIRCRNA_DISCOVERY.out.clr_matrix,
-        params.species,
-        ch_ensembl_database_map,
-        params.exon_boundary
-    )
+    // DIFFERENTIAL_EXPRESSION(
+        // FASTQC_TRIMGALORE.out.reads,
+        // ch_gtf,
+        // ch_fasta,
+        // hisat2_index,
+        // PREPARE_GENOME.out.splice_sites,
+        // ch_phenotype,
+        // CIRCRNA_DISCOVERY.out.dea_matrix,
+        // CIRCRNA_DISCOVERY.out.clr_matrix,
+        // params.species,
+        // ch_ensembl_database_map,
+        // params.exon_boundary
+    // )
 
-    ch_versions = ch_versions.mix(DIFFERENTIAL_EXPRESSION.out.versions)
-    ch_reports  = ch_reports.mix(DIFFERENTIAL_EXPRESSION.out.reports)
+    // ch_versions = ch_versions.mix(DIFFERENTIAL_EXPRESSION.out.versions)
+    // ch_reports  = ch_reports.mix(DIFFERENTIAL_EXPRESSION.out.reports)
 
     CUSTOM_DUMPSOFTWAREVERSIONS (
         ch_versions.unique().collectFile(name: 'collated_versions.yml')
