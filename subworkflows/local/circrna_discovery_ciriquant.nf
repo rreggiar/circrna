@@ -25,7 +25,8 @@ workflow CIRCRNA_DISCOVERY_CIRIQUANT {
     // do not want to upset the collect declr for all indices just for this.
     CIRIQUANT_YML( gtf, fasta, bwa_index.map{ meta, index -> return index }, hisat2_index.map{ meta, index -> return index } )
     CIRIQUANT( reads, CIRIQUANT_YML.out.yml.collect() )
-    CIRIQUANT_FILTER( CIRIQUANT.out.gtf.map{ meta, gtf -> meta + [tool: "ciriquant"]; return [ meta, gtf ] }, bsj_reads )
+    // CIRIQUANT_FILTER( CIRIQUANT.out.gtf.map{ meta, gtf -> meta + [tool: "ciriquant"]; return [ meta, gtf ] }, bsj_reads )
+    CIRIQUANT_FILTER( CIRIQUANT.out.gtf.map{ meta, gtf -> def name = meta.clone(); name.tool = "ciriquant"; return [ name, gtf ] }, bsj_reads )
 
     ch_versions = ch_versions.mix(CIRIQUANT.out.versions)
     ch_versions = ch_versions.mix(CIRIQUANT_FILTER.out.versions)
