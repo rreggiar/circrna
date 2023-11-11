@@ -238,7 +238,7 @@ workflow CIRCRNA {
             params.bsj_reads
         )
 
-        CIRCRNA_DISCOVERY_SEGEMEHL.out.segemhel_results.view()
+        CIRCRNA_DISCOVERY_SEGEMEHL.out.segemehl_results.view()
 
         ch_segemehl_results = CIRCRNA_DISCOVERY_SEGEMEHL.out.segemehl_results
         ch_segemehl_matrix = CIRCRNA_DISCOVERY_SEGEMEHL.out.segemehl_matrix
