@@ -33,5 +33,6 @@ workflow CIRCRNA_DISCOVERY_CIRIQUANT {
 
     emit:
     ciriquant_results = CIRIQUANT_FILTER.out.results
+    ciriquant_matrix = CIRIQUANT_FILTER.out.matrix
     versions = ch_versions
 }

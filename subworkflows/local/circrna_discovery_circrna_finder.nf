@@ -26,5 +26,6 @@ workflow CIRCRNA_DISCOVERY_CIRCRNA_FINDER {
 
     emit:
     circrna_finder_results = CIRCRNA_FINDER_FILTER.out.results
+    circrna_finder_matrix = CIRCRNA_FINDER_FILTER.out.matrix
     versions = ch_versions
 }

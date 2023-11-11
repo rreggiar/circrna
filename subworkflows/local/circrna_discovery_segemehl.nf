@@ -28,5 +28,6 @@ workflow CIRCRNA_DISCOVERY_SEGEMEHL {
 
     emit:
     segemehl_results = SEGEMEHL_FILTER.out.results
+    segemehl_matrix = SEGEMEHL_FILTER.out.matrix
     versions = ch_versions
 }

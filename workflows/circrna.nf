@@ -223,6 +223,7 @@ workflow CIRCRNA {
 
 
     ch_segemehl_results = Channel.empty()
+    ch_segemehl_matrix = Channel.empty()
     if ( params.tool.contains('segemehl') ) {
 
 
@@ -233,12 +234,14 @@ workflow CIRCRNA {
             params.bsj_reads
         )
 
-        CIRCRNA_DISCOVERY_CIRCRNA_FINDER.out.circrna_finder_results.view()
+        CIRCRNA_DISCOVERY_SEGEMEHL.out.segemhel_results.view()
 
-        ch_circrna_finder_results = CIRCRNA_DISCOVERY_CIRCRNA_FINDER.out.circrna_finder_results
+        ch_segemehl_results = CIRCRNA_DISCOVERY_SEGEMEHL.out.segemehl_results
+        ch_segemehl_matrix = CIRCRNA_DISCOVERY_SEGEMEHL.out.segemehl_matrix
     }
 
     ch_circrna_finder_results = Channel.empty()
+    ch_circrna_finder_matrix = Channel.empty()
     if ( params.tool.contains('circrna_finder') ) {
 
 
@@ -253,9 +256,11 @@ workflow CIRCRNA {
         CIRCRNA_DISCOVERY_CIRCRNA_FINDER.out.circrna_finder_results.view()
 
         ch_circrna_finder_results = CIRCRNA_DISCOVERY_CIRCRNA_FINDER.out.circrna_finder_results
+        ch_circrna_finder_matrix = CIRCRNA_DISCOVERY_CIRCRNA_FINDER.out.circrna_finder_matrix
     }
 
     ch_ciriquant_results = Channel.empty()
+    ch_ciriquant_matrix = Channel.empty()
     if ( params.tool.contains('ciriquant') ) {
 
         CIRCRNA_DISCOVERY_CIRIQUANT(
@@ -270,19 +275,41 @@ workflow CIRCRNA {
         CIRCRNA_DISCOVERY_CIRIQUANT.out.ciriquant_results.view()
 
         ch_ciriquant_results = CIRCRNA_DISCOVERY_CIRIQUANT.out.ciriquant_results
+        ch_ciriquant_matrix = CIRCRNA_DISCOVERY_CIRIQUANT.out.ciriquant_matrix
     }
 
     ch_biotypes = Channel.fromPath("${projectDir}/bin/unwanted_biotypes.txt")
+
+    ch_forAnnotation = ch_ciriquant_results.mix(ch_circrna_finder_results)
     ch_annotation = Channel.empty()
-
-    ch_forAnnotation = ch_ciriquant_results.mix(ch_circrna_finder_results).groupTuple( by:0 )
-
     ANNOTATION( ch_forAnnotation , ch_gtf, ch_biotypes.collect(), params.exon_boundary )
 
     ch_annotation = ANNOTATION.out.bed
 
     FASTA( ch_annotation, ch_fasta )
 
+    ch_matrix = ch_ciriquant_matrix.mix(ch_circrna_finder_matrix)
+
+    if( tools_selected.size() > 1){
+
+        MERGE_TOOLS( ch_matrix.map{ meta, bed -> var = [:]; var.id = meta.id; return [ var, bed ] }.groupTuple().unique(), tool_filter, duplicates_fun )
+
+        COUNTS_COMBINED( MERGE_TOOLS.out.merged.map{ meta, bed -> return [ bed ] }.collect() )
+
+        dea_matrix = COUNTS_COMBINED.out.dea_matrix
+        clr_matrix = COUNTS_COMBINED.out.clr_matrix
+        ch_versions = ch_versions.mix(MERGE_TOOLS.out.versions)
+        ch_versions = ch_versions.mix(COUNTS_COMBINED.out.versions)
+
+    }else{
+
+        COUNTS_SINGLE( ch_matrix.map{ meta, bed -> var = [:]; var.tool = meta.tool; return [ var, bed ] }.groupTuple() )
+
+        dea_matrix = COUNTS_SINGLE.out.dea_matrix
+        clr_matrix = COUNTS_SINGLE.out.clr_matrix
+        ch_versions = ch_versions.mix(COUNTS_SINGLE.out.versions)
+
+    }
     //
     // 3. miRNA prediction
     //
