@@ -81,6 +81,7 @@ include { CIRCRNA_DISCOVERY_CIRCRNA_FINDER } from '../subworkflows/local/circrna
 include { CIRCRNA_DISCOVERY_STAR_ALIGN } from '../subworkflows/local/circrna_discovery_star_align'
 include { CIRCRNA_DISCOVERY_SEGEMEHL } from '../subworkflows/local/circrna_discovery_segemehl'
 include { CIRCRNA_DISCOVERY_CIRCEXPLORER2 } from '../subworkflows/local/circrna_discovery_circexplorer2'
+include { CIRCRNA_DISCOVERY_DCC } from '../subworkflows/local/circrna_discovery_dcc'
 include { MIRNA_PREDICTION  } from '../subworkflows/local/mirna_prediction'
 include { DIFFERENTIAL_EXPRESSION } from '../subworkflows/local/differential_expression'
 
@@ -225,6 +226,24 @@ workflow CIRCRNA {
         ch_star_align_tab = CIRCRNA_DISCOVERY_STAR_ALIGN.out.tab
     }
 
+    ch_dcc_results = Channel.empty()
+    ch_dcc_matrix = Channel.empty()
+    if ( params.tool.contains('dcc') ) {
+
+
+        CIRCRNA_DISCOVERY_DCC(
+            ch_filtered_reads,
+            ch_fasta,
+            ch_gtf,
+            star_index,
+            params.bsj_reads
+        )
+
+        CIRCRNA_DISCOVERY_DCC.out.dcc_results.view()
+
+        ch_dcc_results = CIRCRNA_DISCOVERY_DCC.out.dcc_results
+        ch_dcc_matrix = CIRCRNA_DISCOVERY_DCC.out.dcc_matrix
+    }
 
     ch_segemehl_results = Channel.empty()
     ch_segemehl_matrix = Channel.empty()
