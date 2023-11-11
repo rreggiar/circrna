@@ -80,6 +80,7 @@ include { CIRCRNA_DISCOVERY_CIRIQUANT } from '../subworkflows/local/circrna_disc
 include { CIRCRNA_DISCOVERY_CIRCRNA_FINDER } from '../subworkflows/local/circrna_discovery_circrna_finder'
 include { CIRCRNA_DISCOVERY_STAR_ALIGN } from '../subworkflows/local/circrna_discovery_star_align'
 include { CIRCRNA_DISCOVERY_SEGEMEHL } from '../subworkflows/local/circrna_discovery_segemehl'
+include { CIRCRNA_DISCOVERY_CIRCEXPLORER2 } from '../subworkflows/local/circrna_discovery_circexplorer2'
 include { MIRNA_PREDICTION  } from '../subworkflows/local/mirna_prediction'
 include { DIFFERENTIAL_EXPRESSION } from '../subworkflows/local/differential_expression'
 
@@ -301,7 +302,9 @@ workflow CIRCRNA {
 
     ch_biotypes = Channel.fromPath("${projectDir}/bin/unwanted_biotypes.txt")
 
-    ch_forAnnotation = ch_ciriquant_results.mix(ch_circrna_finder_results)
+    ch_forAnnotation = ch_ciriquant_results.mix(ch_circrna_finder_results,
+                                                ch_circexplorer2_results,
+                                                ch_segemehl_results)
     ch_annotation = Channel.empty()
     ANNOTATION( ch_forAnnotation , ch_gtf, ch_biotypes.collect(), params.exon_boundary )
 
@@ -309,7 +312,9 @@ workflow CIRCRNA {
 
     FASTA( ch_annotation, ch_fasta )
 
-    ch_matrix = ch_ciriquant_matrix.mix(ch_circrna_finder_matrix)
+    ch_matrix = ch_ciriquant_matrix.mix(ch_circrna_finder_matrix,
+                                        ch_circexplorer2_matrix,
+                                        ch_segemehl_matrix)
 
     tools_selected = params.tool.split(',').collect{it.trim().toLowerCase()}
     if( tools_selected.size() > 1){
