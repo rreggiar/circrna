@@ -243,6 +243,24 @@ workflow CIRCRNA {
         ch_segemehl_matrix = CIRCRNA_DISCOVERY_SEGEMEHL.out.segemehl_matrix
     }
 
+    ch_circexplorer2_results = Channel.empty()
+    ch_circexplorer2_matrix = Channel.empty()
+    if ( params.tool.contains('circexplorer2') ) {
+
+
+        CIRCRNA_DISCOVERY_CIRCEXPLORER2(
+            ch_fasta,
+            ch_star_align_junction,
+            ch_gtf,
+            params.bsj_reads
+        )
+
+        CIRCRNA_DISCOVERY_CIRCEXPLORER2.out.circexplorer2_results.view()
+
+        ch_circexplorer2_results = CIRCRNA_DISCOVERY_CIRCEXPLORER2.out.circexplorer2_results
+        ch_circexplorer2_matrix = CIRCRNA_DISCOVERY_CIRCEXPLORER2.out.circexplorer2_matrix
+    }
+
     ch_circrna_finder_results = Channel.empty()
     ch_circrna_finder_matrix = Channel.empty()
     if ( params.tool.contains('circrna_finder') ) {
