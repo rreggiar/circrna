@@ -12,7 +12,6 @@ workflow CIRCRNA_DISCOVERY_SEGEMEHL {
     main:
     ch_versions = Channel.empty()
     ch_fasta = Channel.fromPath(fasta)
-    ch_gtf   = Channel.fromPath(gtf)
 
     //
     // SEGEMEHL WORKFLOW:
