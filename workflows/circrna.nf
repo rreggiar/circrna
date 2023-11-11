@@ -293,7 +293,8 @@ workflow CIRCRNA {
     tools_selected = params.tool.split(',').collect{it.trim().toLowerCase()}
     if( tools_selected.size() > 1){
 
-        MERGE_TOOLS( ch_matrix.map{ meta, bed -> var = [:]; var.id = meta.id; return [ var, bed ] }.groupTuple().unique(), tool_filter, duplicates_fun )
+        MERGE_TOOLS( ch_matrix.map{ meta, bed -> var = [:]; var.id = meta.id; return [ var, bed ] }.groupTuple().unique(),
+                                                                                                    params.tool_filter, params.duplicates_fun )
 
         COUNTS_COMBINED( MERGE_TOOLS.out.merged.map{ meta, bed -> return [ bed ] }.collect() )
 
