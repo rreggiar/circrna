@@ -290,6 +290,7 @@ workflow CIRCRNA {
 
     ch_matrix = ch_ciriquant_matrix.mix(ch_circrna_finder_matrix)
 
+    tools_selected = params.tool.split(',').collect{it.trim().toLowerCase()}
     if( tools_selected.size() > 1){
 
         MERGE_TOOLS( ch_matrix.map{ meta, bed -> var = [:]; var.id = meta.id; return [ var, bed ] }.groupTuple().unique(), tool_filter, duplicates_fun )
