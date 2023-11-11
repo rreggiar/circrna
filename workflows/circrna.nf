@@ -79,6 +79,7 @@ include { CIRCRNA_DISCOVERY } from '../subworkflows/local/circrna_discovery'
 include { CIRCRNA_DISCOVERY_CIRIQUANT } from '../subworkflows/local/circrna_discovery_ciriquant'
 include { CIRCRNA_DISCOVERY_CIRCRNA_FINDER } from '../subworkflows/local/circrna_discovery_circrna_finder'
 include { CIRCRNA_DISCOVERY_STAR_ALIGN } from '../subworkflows/local/circrna_discovery_star_align'
+include { CIRCRNA_DISCOVERY_SEGEMEHL } from '../subworkflows/local/circrna_discovery_segemehl'
 include { MIRNA_PREDICTION  } from '../subworkflows/local/mirna_prediction'
 include { DIFFERENTIAL_EXPRESSION } from '../subworkflows/local/differential_expression'
 
@@ -220,6 +221,22 @@ workflow CIRCRNA {
         ch_star_align_tab = CIRCRNA_DISCOVERY_STAR_ALIGN.out.tab
     }
 
+
+    ch_segemehl_results = Channel.empty()
+    if ( params.tool.contains('segemehl') ) {
+
+
+        CIRCRNA_DISCOVERY_SEGEMEHL(
+            ch_filtered_reads,
+            ch_fasta,
+            segemehl_index,
+            params.bsj_reads
+        )
+
+        CIRCRNA_DISCOVERY_CIRCRNA_FINDER.out.circrna_finder_results.view()
+
+        ch_circrna_finder_results = CIRCRNA_DISCOVERY_CIRCRNA_FINDER.out.circrna_finder_results
+    }
 
     ch_circrna_finder_results = Channel.empty()
     if ( params.tool.contains('circrna_finder') ) {

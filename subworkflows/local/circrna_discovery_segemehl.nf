@@ -1,3 +1,4 @@
+include { SEGEMEHL_ALIGN                   } from '../../modules/nf-core/segemehl/align/main'
 include { SEGEMEHL_FILTER                  } from '../../modules/local/segemehl/filter/main'
 
 workflow CIRCRNA_DISCOVERY_SEGEMEHL {
