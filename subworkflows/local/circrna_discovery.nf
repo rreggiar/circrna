@@ -79,7 +79,8 @@ workflow CIRCRNA_DISCOVERY {
     //
 
     SEGEMEHL_ALIGN( reads, fasta, segemehl_index )
-    segemehl_filter = SEGEMEHL_ALIGN.out.results.map{ meta, results ->  meta.tool = "segemehl"; return [ meta, results ] }
+    segemehl_filter = SEGEMEHL_ALIGN.out.results.map{ meta, results ->  def name = meta.clone(); name.tool = "segemehl"; return [ name, results ] }
+
     SEGEMEHL_FILTER( segemehl_filter, bsj_reads )
 
     ch_versions = ch_versions.mix(SEGEMEHL_ALIGN.out.versions)
@@ -109,7 +110,7 @@ workflow CIRCRNA_DISCOVERY {
     CIRCEXPLORER2_REF( gtf )
     CIRCEXPLORER2_PAR( STAR_2ND_PASS.out.junction )
     CIRCEXPLORER2_ANN( CIRCEXPLORER2_PAR.out.junction, fasta, CIRCEXPLORER2_REF.out.txt )
-    circexplorer2_filter = CIRCEXPLORER2_ANN.out.txt.map{ meta, txt -> meta.tool = "circexplorer2"; return [ meta, txt ] }
+    circexplorer2_filter = CIRCEXPLORER2_ANN.out.txt.map{ meta, txt -> def name = meta.clone(); name.tool = "circexplorer2"; return [ name, txt ] }
     CIRCEXPLORER2_FLT( circexplorer2_filter, bsj_reads )
 
     // CIRCEXPLORER2_FLT.out.results.view()
@@ -125,7 +126,7 @@ workflow CIRCRNA_DISCOVERY {
 
     circrna_finder_stage = STAR_2ND_PASS.out.sam.join( STAR_2ND_PASS.out.junction).join(STAR_2ND_PASS.out.tab)
     circrna_finder_stage.view()
-    circrna_finder_filter = circrna_finder_stage.map{ meta, sam, junction, tab -> meta.tool = "circrna_finder"; return [ meta, sam, junction, tab ] }.groupTuple( by:0 )
+    circrna_finder_filter = circrna_finder_stage.map{ meta, sam, junction, tab -> def name = meta.clone(); name.tool = "circrna_finder"; return [ name, sam, junction, tab ] }.groupTuple( by:0 )
     CIRCRNA_FINDER_FILTER( circrna_finder_filter, fasta, bsj_reads )
 
     // CIRCRNA_FINDER_FILTER.out.results.view()
@@ -141,7 +142,7 @@ workflow CIRCRNA_DISCOVERY {
     SAMTOOLS_VIEW( FIND_CIRC_ALIGN.out.aligned.join( SAMTOOLS_INDEX.out.bai ), fasta_tuple, [] )
     FIND_CIRC_ANCHORS( SAMTOOLS_VIEW.out.bam )
     FIND_CIRC( FIND_CIRC_ANCHORS.out.anchors, bowtie2_index.collect(), fasta )
-    find_circ_filter = FIND_CIRC.out.bed.map{ meta, bed -> meta.tool = "find_circ"; return [ meta, bed ] }
+    find_circ_filter = FIND_CIRC.out.bed.map{ meta, bed -> def name = meta.clone(); name.tool = "find_circ"; return [ name, bed ] }
     FIND_CIRC_FILTER( find_circ_filter, bsj_reads )
 
     ch_versions = ch_versions.mix(FIND_CIRC_ALIGN.out.versions)
@@ -157,9 +158,9 @@ workflow CIRCRNA_DISCOVERY {
 
     // only need path to bwa, only need path to hisat2.
     // do not want to upset the collect declr for all indices just for this.
-    //CIRIQUANT_YML( gtf, fasta, bwa_index.map{ meta, index -> return index }, hisat2_index.map{ meta, index -> return index } )
-    //CIRIQUANT( reads, CIRIQUANT_YML.out.yml.collect() )
-    //CIRIQUANT_FILTER( CIRIQUANT.out.gtf.map{ meta, gtf -> meta.tool = "ciriquant"; return [ meta, gtf ] }, bsj_reads )
+    CIRIQUANT_YML( gtf, fasta, bwa_index.map{ meta, index -> return index }, hisat2_index.map{ meta, index -> return index } )
+    CIRIQUANT( reads, CIRIQUANT_YML.out.yml.collect() )
+    CIRIQUANT_FILTER( CIRIQUANT.out.gtf.map{ meta, gtf -> def name = meta.clone(); name.tool = "ciriquant"; return [ name, gtf ] }, bsj_reads )
 
     // CIRIQUANT_FILTER.out.results.view()
 
@@ -217,7 +218,7 @@ workflow CIRCRNA_DISCOVERY {
 
     dcc = dcc_stage.map{ it -> def meta = it[0]; if( meta.single_end ){ return [ it[0], it[1], [], [] ] } else { return it } }
     DCC( dcc, fasta, gtf )
-    DCC_FILTER( DCC.out.txt.map{ meta, txt -> meta.tool = "dcc"; return [ meta, txt ] }, bsj_reads )
+    DCC_FILTER( DCC.out.txt.map{ meta, txt -> def name = meta.clone(); name.tool = "dcc"; return [ name, txt ] }, bsj_reads )
 
     // DCC_FILTER.out.results.view()
 
@@ -232,7 +233,7 @@ workflow CIRCRNA_DISCOVERY {
     MAPSPLICE_ALIGN( reads, bowtie_index.collect(), chromosomes, gtf )
     MAPSPLICE_PARSE( MAPSPLICE_ALIGN.out.raw_fusions )
     MAPSPLICE_ANNOTATE( MAPSPLICE_PARSE.out.junction, fasta, MAPSPLICE_REFERENCE.out.txt )
-    mapsplice_filter = MAPSPLICE_ANNOTATE.out.txt.map{ meta, txt -> meta.tool = "mapsplice"; return [ meta, txt ] }
+    mapsplice_filter = MAPSPLICE_ANNOTATE.out.txt.map{ meta, txt -> def name = meta.clone(); name.tool = "mapsplice"; return [ name, txt ] }
     MAPSPLICE_FILTER( mapsplice_filter, bsj_reads )
 
     ch_versions = ch_versions.mix(MAPSPLICE_REFERENCE.out.versions)
