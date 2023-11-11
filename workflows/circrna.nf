@@ -95,6 +95,9 @@ include { CUSTOM_DUMPSOFTWAREVERSIONS } from '../modules/nf-core/custom/dumpsoft
 include { CAT_FASTQ                   } from '../modules/nf-core/cat/fastq/main'
 include { ANNOTATION                  } from '../modules/local/annotation/full_annotation/main'
 include { FASTA                       } from '../modules/local/fasta/main'
+include { MERGE_TOOLS                      } from '../modules/local/count_matrix/merge_tools/main'
+include { COUNTS_COMBINED                  } from '../modules/local/count_matrix/combined/main'
+include { COUNTS_SINGLE                    } from '../modules/local/count_matrix/single/main'
 // SUBWORKFLOWS:
 include { FASTQC_TRIMGALORE } from '../subworkflows/nf-core/fastqc_trimgalore'
 /*
