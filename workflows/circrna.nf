@@ -323,6 +323,7 @@ workflow CIRCRNA {
 
     ch_forAnnotation = ch_ciriquant_results.mix(ch_circrna_finder_results,
                                                 ch_circexplorer2_results,
+                                                ch_dcc_results,
                                                 ch_segemehl_results)
     ch_annotation = Channel.empty()
     ANNOTATION( ch_forAnnotation , ch_gtf, ch_biotypes.collect(), params.exon_boundary )
@@ -333,6 +334,7 @@ workflow CIRCRNA {
 
     ch_matrix = ch_ciriquant_matrix.mix(ch_circrna_finder_matrix,
                                         ch_circexplorer2_matrix,
+                                        ch_dcc_matrix,
                                         ch_segemehl_matrix)
 
     tools_selected = params.tool.split(',').collect{it.trim().toLowerCase()}
