@@ -51,8 +51,9 @@ workflow PREPARE_GENOME {
     BWA_INDEX (fasta_tuple)
 
     HISAT2_EXTRACTSPLICESITES(gtf_tuple)
-
-    HISAT2_BUILD(fasta_tuple, gtf_tuple, HISAT2_EXTRACTSPLICESITES.out.txt)
+    // NOTE
+    // temporary fix; will always run otherwise; & below
+    // HISAT2_BUILD(fasta_tuple, gtf_tuple, HISAT2_EXTRACTSPLICESITES.out.txt)
 
     STAR_GENOMEGENERATE(fasta_tuple, gtf_tuple)
 
@@ -63,7 +64,7 @@ workflow PREPARE_GENOME {
     ch_versions = ch_versions.mix(BOWTIE2_BUILD.out.versions)
     ch_versions = ch_versions.mix(BWA_INDEX.out.versions)
     ch_versions = ch_versions.mix(HISAT2_EXTRACTSPLICESITES.out.versions)
-    ch_versions = ch_versions.mix(HISAT2_BUILD.out.versions)
+    // ch_versions = ch_versions.mix(HISAT2_BUILD.out.versions)
     ch_versions = ch_versions.mix(SEGEMEHL_INDEX.out.versions)
     ch_versions = ch_versions.mix(STAR_GENOMEGENERATE.out.versions)
 
@@ -72,7 +73,7 @@ workflow PREPARE_GENOME {
     bowtie2      = BOWTIE2_BUILD.out.index
     bwa          = BWA_INDEX.out.index
     chromosomes  = ( params.tool.contains('mapsplice') || params.tool.contains('find_circ') ) ? stage_chromosomes : 'null'
-    hisat2       = HISAT2_BUILD.out.index.collect()
+    // hisat2       = HISAT2_BUILD.out.index.collect()
     star         = STAR_GENOMEGENERATE.out.index.collect()
     segemehl     = SEGEMEHL_INDEX.out.index
     splice_sites = HISAT2_EXTRACTSPLICESITES.out.txt.collect()

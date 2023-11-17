@@ -88,7 +88,7 @@
                 "save_intermediates": {
                     "type": "boolean",
                     "description": "Save intermediate alignment/circRNA files.",
-                    "default": false,
+                    "default": true,
                     "fa_icon": "fas fa-save"
                 },
                 "exon_boundary": {

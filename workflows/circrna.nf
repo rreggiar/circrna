@@ -76,6 +76,12 @@ ch_multiqc_custom_methods_description = params.multiqc_methods_description ? fil
 include { INPUT_CHECK       } from '../subworkflows/local/input_check'
 include { PREPARE_GENOME    } from '../subworkflows/local/prepare_genome'
 include { CIRCRNA_DISCOVERY } from '../subworkflows/local/circrna_discovery'
+include { CIRCRNA_DISCOVERY_CIRIQUANT } from '../subworkflows/local/circrna_discovery_ciriquant'
+include { CIRCRNA_DISCOVERY_CIRCRNA_FINDER } from '../subworkflows/local/circrna_discovery_circrna_finder'
+include { CIRCRNA_DISCOVERY_STAR_ALIGN } from '../subworkflows/local/circrna_discovery_star_align'
+include { CIRCRNA_DISCOVERY_SEGEMEHL } from '../subworkflows/local/circrna_discovery_segemehl'
+include { CIRCRNA_DISCOVERY_CIRCEXPLORER2 } from '../subworkflows/local/circrna_discovery_circexplorer2'
+include { CIRCRNA_DISCOVERY_DCC } from '../subworkflows/local/circrna_discovery_dcc'
 include { MIRNA_PREDICTION  } from '../subworkflows/local/mirna_prediction'
 include { DIFFERENTIAL_EXPRESSION } from '../subworkflows/local/differential_expression'
 
@@ -89,7 +95,11 @@ include { DIFFERENTIAL_EXPRESSION } from '../subworkflows/local/differential_exp
 include { MULTIQC                     } from '../modules/nf-core/multiqc/main'
 include { CUSTOM_DUMPSOFTWAREVERSIONS } from '../modules/nf-core/custom/dumpsoftwareversions/main'
 include { CAT_FASTQ                   } from '../modules/nf-core/cat/fastq/main'
-
+include { ANNOTATION                  } from '../modules/local/annotation/full_annotation/main'
+include { FASTA                       } from '../modules/local/fasta/main'
+include { MERGE_TOOLS                      } from '../modules/local/count_matrix/merge_tools/main'
+include { COUNTS_COMBINED                  } from '../modules/local/count_matrix/combined/main'
+include { COUNTS_SINGLE                    } from '../modules/local/count_matrix/single/main'
 // SUBWORKFLOWS:
 include { FASTQC_TRIMGALORE } from '../subworkflows/nf-core/fastqc_trimgalore'
 /*
@@ -144,6 +154,7 @@ workflow CIRCRNA {
 
     // SUBORKFLOW:
     // Prepare index files &/or use iGenomes if chosen.
+    // NOTE packaging an arg here could enable the correct genome behavior
     PREPARE_GENOME (
         ch_fasta,
         ch_gtf
@@ -154,17 +165,23 @@ workflow CIRCRNA {
     bowtie2_index  = params.fasta ? params.bowtie2 ? Channel.fromPath(params.bowtie2).map{ it -> [[id:'bowtie2'], it] } : PREPARE_GENOME.out.bowtie2 : []
     bwa_index      = params.fasta ? params.bwa ? Channel.fromPath(params.bwa).map{ it -> [[id:'bwa'], it] } : PREPARE_GENOME.out.bwa : []
     chromosomes    = params.fasta && ( params.tool.contains('mapsplice') || params.tool.contains('find_circ') ) ? PREPARE_GENOME.out.chromosomes : []
-    hisat2_index   = params.fasta ? params.hisat2 && ( params.tool.contains('ciriquant') || params.module.contains('differential_expression') ) ? Channel.fromPath(params.hisat2).map{ [[id:"hisat2"], it]} : PREPARE_GENOME.out.hisat2 : []
+    // NOTE
+    // temporary fix
+    // hisat2_index   = params.fasta ? params.hisat2 && ( params.tool.contains('ciriquant') || params.module.contains('differential_expression') ) ? Channel.fromPath(params.hisat2).map{ [[id:"hisat2"], it]} : PREPARE_GENOME.out.hisat2 : []
+    hisat2_index   = Channel.fromPath(params.hisat2).map{ [[id:"hisat2"], it]}
     star_index     = params.fasta ? params.star ? Channel.fromPath(params.star).map{[[id:'star'], it]}: PREPARE_GENOME.out.star : []
     segemehl_index = params.fasta ? params.segemehl ? Channel.fromPath(params.segemehl) : PREPARE_GENOME.out.segemehl : []
     ch_versions    = ch_versions.mix(PREPARE_GENOME.out.versions)
 
     // MODULE: Run FastQC, trimgalore!
+    ch_filtered_reads = Channel.empty()
     FASTQC_TRIMGALORE (
         ch_cat_fastq,
         params.skip_fastqc,
         params.skip_trimming
     )
+    ch_filtered_reads = FASTQC_TRIMGALORE.out.reads
+    ch_filtered_reads.view()
     ch_versions = ch_versions.mix(FASTQC_TRIMGALORE.out.versions)
     ch_reports  = ch_reports.mix(FASTQC_TRIMGALORE.out.trim_zip.collect{it[1]}.ifEmpty([]))
     ch_reports  = ch_reports.mix(FASTQC_TRIMGALORE.out.trim_log.collect{it[1]}.ifEmpty([]))
@@ -173,59 +190,209 @@ workflow CIRCRNA {
     // 2. circRNA Discovery
     //
 
-    CIRCRNA_DISCOVERY(
-        FASTQC_TRIMGALORE.out.reads,
-        ch_fasta,
-        ch_gtf,
-        bowtie_index,
-        bowtie2_index,
-        bwa_index,
-        chromosomes,
-        hisat2_index,
-        segemehl_index,
-        star_index,
-        params.bsj_reads,
-        params.tool_filter,
-        params.duplicates_fun,
-        params.exon_boundary
-    )
+    // CIRCRNA_DISCOVERY(
+        // FASTQC_TRIMGALORE.out.reads,
+        // ch_fasta,
+        // ch_gtf,
+        // bowtie_index,
+        // bowtie2_index,
+        // bwa_index,
+        // chromosomes,
+        // hisat2_index,
+        // segemehl_index,
+        // star_index,
+        // params.bsj_reads,
+        // params.tool_filter,
+        // params.duplicates_fun,
+        // params.exon_boundary
+    // )
 
-    ch_versions = ch_versions.mix(CIRCRNA_DISCOVERY.out.versions)
+    ch_star_align_sam = Channel.empty()
+    ch_star_align_junction = Channel.empty()
+    ch_star_align_tab = Channel.empty()
+    if ( ( params.tool.contains('circexplorer2') || params.tool.contains('circrna_finder') ) ) {
 
+
+        CIRCRNA_DISCOVERY_STAR_ALIGN(
+            ch_filtered_reads,
+            ch_fasta,
+            ch_gtf,
+            star_index,
+            params.bsj_reads
+        )
+
+        ch_star_align_sam = CIRCRNA_DISCOVERY_STAR_ALIGN.out.sam
+        ch_star_align_junction = CIRCRNA_DISCOVERY_STAR_ALIGN.out.junction
+        ch_star_align_tab = CIRCRNA_DISCOVERY_STAR_ALIGN.out.tab
+    }
+
+    ch_dcc_results = Channel.empty()
+    ch_dcc_matrix = Channel.empty()
+    if ( params.tool.contains('dcc') ) {
+
+
+        CIRCRNA_DISCOVERY_DCC(
+            ch_filtered_reads,
+            ch_fasta,
+            ch_gtf,
+            star_index,
+            params.bsj_reads
+        )
+
+        CIRCRNA_DISCOVERY_DCC.out.dcc_results.view()
+
+        ch_dcc_results = CIRCRNA_DISCOVERY_DCC.out.dcc_results
+        ch_dcc_matrix = CIRCRNA_DISCOVERY_DCC.out.dcc_matrix
+    }
+
+    ch_segemehl_results = Channel.empty()
+    ch_segemehl_matrix = Channel.empty()
+    if ( params.tool.contains('segemehl') ) {
+
+
+        CIRCRNA_DISCOVERY_SEGEMEHL(
+            ch_filtered_reads,
+            ch_fasta,
+            segemehl_index,
+            params.bsj_reads
+        )
+
+        CIRCRNA_DISCOVERY_SEGEMEHL.out.segemehl_results.view()
+
+        ch_segemehl_results = CIRCRNA_DISCOVERY_SEGEMEHL.out.segemehl_results
+        ch_segemehl_matrix = CIRCRNA_DISCOVERY_SEGEMEHL.out.segemehl_matrix
+    }
+
+    ch_circexplorer2_results = Channel.empty()
+    ch_circexplorer2_matrix = Channel.empty()
+    if ( params.tool.contains('circexplorer2') ) {
+
+
+        CIRCRNA_DISCOVERY_CIRCEXPLORER2(
+            ch_fasta,
+            ch_star_align_junction,
+            ch_gtf,
+            params.bsj_reads
+        )
+
+        CIRCRNA_DISCOVERY_CIRCEXPLORER2.out.circexplorer2_results.view()
+
+        ch_circexplorer2_results = CIRCRNA_DISCOVERY_CIRCEXPLORER2.out.circexplorer2_results
+        ch_circexplorer2_matrix = CIRCRNA_DISCOVERY_CIRCEXPLORER2.out.circexplorer2_matrix
+    }
+
+    ch_circrna_finder_results = Channel.empty()
+    ch_circrna_finder_matrix = Channel.empty()
+    if ( params.tool.contains('circrna_finder') ) {
+
+
+        CIRCRNA_DISCOVERY_CIRCRNA_FINDER(
+            ch_star_align_sam,
+            ch_star_align_junction,
+            ch_star_align_tab,
+            ch_fasta,
+            params.bsj_reads
+        )
+
+        CIRCRNA_DISCOVERY_CIRCRNA_FINDER.out.circrna_finder_results.view()
+
+        ch_circrna_finder_results = CIRCRNA_DISCOVERY_CIRCRNA_FINDER.out.circrna_finder_results
+        ch_circrna_finder_matrix = CIRCRNA_DISCOVERY_CIRCRNA_FINDER.out.circrna_finder_matrix
+    }
+
+    ch_ciriquant_results = Channel.empty()
+    ch_ciriquant_matrix = Channel.empty()
+    if ( params.tool.contains('ciriquant') ) {
+
+        CIRCRNA_DISCOVERY_CIRIQUANT(
+            ch_filtered_reads,
+            ch_fasta,
+            ch_gtf,
+            bwa_index,
+            hisat2_index,
+            params.bsj_reads
+        )
+
+        CIRCRNA_DISCOVERY_CIRIQUANT.out.ciriquant_results.view()
+
+        ch_ciriquant_results = CIRCRNA_DISCOVERY_CIRIQUANT.out.ciriquant_results
+        ch_ciriquant_matrix = CIRCRNA_DISCOVERY_CIRIQUANT.out.ciriquant_matrix
+    }
+
+    ch_biotypes = Channel.fromPath("${projectDir}/bin/unwanted_biotypes.txt")
+
+    ch_forAnnotation = ch_ciriquant_results.mix(ch_circrna_finder_results,
+                                                ch_circexplorer2_results,
+                                                ch_dcc_results,
+                                                ch_segemehl_results)
+    ch_annotation = Channel.empty()
+    ANNOTATION( ch_forAnnotation , ch_gtf, ch_biotypes.collect(), params.exon_boundary )
+
+    ch_annotation = ANNOTATION.out.bed
+
+    FASTA( ch_annotation, ch_fasta )
+
+    ch_matrix = ch_ciriquant_matrix.mix(ch_circrna_finder_matrix,
+                                        ch_circexplorer2_matrix,
+                                        ch_dcc_matrix,
+                                        ch_segemehl_matrix)
+
+    tools_selected = params.tool.split(',').collect{it.trim().toLowerCase()}
+    if( tools_selected.size() > 1){
+
+        MERGE_TOOLS( ch_matrix.map{ meta, bed -> var = [:]; var.id = meta.id; return [ var, bed ] }.groupTuple().unique(),
+                                                                                                    params.tool_filter, params.duplicates_fun )
+
+        COUNTS_COMBINED( MERGE_TOOLS.out.merged.map{ meta, bed -> return [ bed ] }.collect() )
+
+        dea_matrix = COUNTS_COMBINED.out.dea_matrix
+        clr_matrix = COUNTS_COMBINED.out.clr_matrix
+        ch_versions = ch_versions.mix(MERGE_TOOLS.out.versions)
+        ch_versions = ch_versions.mix(COUNTS_COMBINED.out.versions)
+
+    }else{
+
+        COUNTS_SINGLE( ch_matrix.map{ meta, bed -> var = [:]; var.tool = meta.tool; return [ var, bed ] }.groupTuple() )
+
+        dea_matrix = COUNTS_SINGLE.out.dea_matrix
+        clr_matrix = COUNTS_SINGLE.out.clr_matrix
+        ch_versions = ch_versions.mix(COUNTS_SINGLE.out.versions)
+
+    }
     //
     // 3. miRNA prediction
     //
 
-    MIRNA_PREDICTION(
-        CIRCRNA_DISCOVERY.out.fasta,
-        CIRCRNA_DISCOVERY.out.circrna_bed12,
-        ch_mature
-    )
+    // MIRNA_PREDICTION(
+        // CIRCRNA_DISCOVERY.out.fasta,
+        // CIRCRNA_DISCOVERY.out.circrna_bed12,
+        // ch_mature
+    // )
 
-    ch_versions = ch_versions.mix(MIRNA_PREDICTION.out.versions)
+    // ch_versions = ch_versions.mix(MIRNA_PREDICTION.out.versions)
 
     //
     // 4. Differential expression tests
     //
 
-    ch_ensembl_database_map = params.module.contains('differential_expression') ? Channel.fromPath("${projectDir}/bin/ensembl_database_map.txt") : Channel.empty()
+    // ch_ensembl_database_map = params.module.contains('differential_expression') ? Channel.fromPath("${projectDir}/bin/ensembl_database_map.txt") : Channel.empty()
 
-    DIFFERENTIAL_EXPRESSION(
-        FASTQC_TRIMGALORE.out.reads,
-        ch_gtf,
-        ch_fasta,
-        hisat2_index,
-        PREPARE_GENOME.out.splice_sites,
-        ch_phenotype,
-        CIRCRNA_DISCOVERY.out.dea_matrix,
-        CIRCRNA_DISCOVERY.out.clr_matrix,
-        params.species,
-        ch_ensembl_database_map,
-        params.exon_boundary
-    )
+    // DIFFERENTIAL_EXPRESSION(
+        // ch_filtered_reads,
+        // ch_gtf,
+        // ch_fasta,
+        // hisat2_index,
+        // PREPARE_GENOME.out.splice_sites,
+        // ch_phenotype,
+        // CIRCRNA_DISCOVERY.out.dea_matrix,
+        // CIRCRNA_DISCOVERY.out.clr_matrix,
+        // params.species,
+        // ch_ensembl_database_map,
+        // params.exon_boundary
+    // )
 
-    ch_versions = ch_versions.mix(DIFFERENTIAL_EXPRESSION.out.versions)
-    ch_reports  = ch_reports.mix(DIFFERENTIAL_EXPRESSION.out.reports)
+    // ch_versions = ch_versions.mix(DIFFERENTIAL_EXPRESSION.out.versions)
+    // ch_reports  = ch_reports.mix(DIFFERENTIAL_EXPRESSION.out.reports)
 
     CUSTOM_DUMPSOFTWAREVERSIONS (
         ch_versions.unique().collectFile(name: 'collated_versions.yml')
