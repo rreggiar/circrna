@@ -77,8 +77,10 @@ workflow CIRCRNA_DISCOVERY {
     //
     // SEGEMEHL WORKFLOW:
     //
+
     SEGEMEHL_ALIGN( reads, fasta, segemehl_index )
-    segemehl_filter = SEGEMEHL_ALIGN.out.results.map{ meta, results ->  meta.tool = "segemehl"; return [ meta, results ] }
+    segemehl_filter = SEGEMEHL_ALIGN.out.results.map{ meta, results ->  def name = meta.clone(); name.tool = "segemehl"; return [ name, results ] }
+
     SEGEMEHL_FILTER( segemehl_filter, bsj_reads )
 
     ch_versions = ch_versions.mix(SEGEMEHL_ALIGN.out.versions)
@@ -108,8 +110,10 @@ workflow CIRCRNA_DISCOVERY {
     CIRCEXPLORER2_REF( gtf )
     CIRCEXPLORER2_PAR( STAR_2ND_PASS.out.junction )
     CIRCEXPLORER2_ANN( CIRCEXPLORER2_PAR.out.junction, fasta, CIRCEXPLORER2_REF.out.txt )
-    circexplorer2_filter = CIRCEXPLORER2_ANN.out.txt.map{ meta, txt -> meta.tool = "circexplorer2"; return [ meta, txt ] }
+    circexplorer2_filter = CIRCEXPLORER2_ANN.out.txt.map{ meta, txt -> def name = meta.clone(); name.tool = "circexplorer2"; return [ name, txt ] }
     CIRCEXPLORER2_FLT( circexplorer2_filter, bsj_reads )
+
+    // CIRCEXPLORER2_FLT.out.results.view()
 
     ch_versions = ch_versions.mix(CIRCEXPLORER2_REF.out.versions)
     ch_versions = ch_versions.mix(CIRCEXPLORER2_PAR.out.versions)
@@ -121,8 +125,11 @@ workflow CIRCRNA_DISCOVERY {
     //
 
     circrna_finder_stage = STAR_2ND_PASS.out.sam.join( STAR_2ND_PASS.out.junction).join(STAR_2ND_PASS.out.tab)
-    circrna_finder_filter = circrna_finder_stage.map{ meta, sam, junction, tab -> meta.tool = "circrna_finder"; return [ meta, sam, junction, tab ] }
+    circrna_finder_stage.view()
+    circrna_finder_filter = circrna_finder_stage.map{ meta, sam, junction, tab -> def name = meta.clone(); name.tool = "circrna_finder"; return [ name, sam, junction, tab ] }.groupTuple( by:0 )
     CIRCRNA_FINDER_FILTER( circrna_finder_filter, fasta, bsj_reads )
+
+    // CIRCRNA_FINDER_FILTER.out.results.view()
 
     ch_versions = ch_versions.mix(CIRCRNA_FINDER_FILTER.out.versions)
 
@@ -135,7 +142,7 @@ workflow CIRCRNA_DISCOVERY {
     SAMTOOLS_VIEW( FIND_CIRC_ALIGN.out.aligned.join( SAMTOOLS_INDEX.out.bai ), fasta_tuple, [] )
     FIND_CIRC_ANCHORS( SAMTOOLS_VIEW.out.bam )
     FIND_CIRC( FIND_CIRC_ANCHORS.out.anchors, bowtie2_index.collect(), fasta )
-    find_circ_filter = FIND_CIRC.out.bed.map{ meta, bed -> meta.tool = "find_circ"; return [ meta, bed ] }
+    find_circ_filter = FIND_CIRC.out.bed.map{ meta, bed -> def name = meta.clone(); name.tool = "find_circ"; return [ name, bed ] }
     FIND_CIRC_FILTER( find_circ_filter, bsj_reads )
 
     ch_versions = ch_versions.mix(FIND_CIRC_ALIGN.out.versions)
@@ -153,10 +160,12 @@ workflow CIRCRNA_DISCOVERY {
     // do not want to upset the collect declr for all indices just for this.
     CIRIQUANT_YML( gtf, fasta, bwa_index.map{ meta, index -> return index }, hisat2_index.map{ meta, index -> return index } )
     CIRIQUANT( reads, CIRIQUANT_YML.out.yml.collect() )
-    CIRIQUANT_FILTER( CIRIQUANT.out.gtf.map{ meta, gtf -> meta.tool = "ciriquant"; return [ meta, gtf ] }, bsj_reads )
+    CIRIQUANT_FILTER( CIRIQUANT.out.gtf.map{ meta, gtf -> def name = meta.clone(); name.tool = "ciriquant"; return [ name, gtf ] }, bsj_reads )
 
-    ch_versions = ch_versions.mix(CIRIQUANT.out.versions)
-    ch_versions = ch_versions.mix(CIRIQUANT_FILTER.out.versions)
+    // CIRIQUANT_FILTER.out.results.view()
+
+    //ch_versions = ch_versions.mix(CIRIQUANT.out.versions)
+    //ch_versions = ch_versions.mix(CIRIQUANT_FILTER.out.versions)
 
     //
     // DCC WORKFLOW
@@ -222,7 +231,7 @@ workflow CIRCRNA_DISCOVERY {
     MAPSPLICE_ALIGN( reads, bowtie_index.collect(), chromosomes, gtf )
     MAPSPLICE_PARSE( MAPSPLICE_ALIGN.out.raw_fusions )
     MAPSPLICE_ANNOTATE( MAPSPLICE_PARSE.out.junction, fasta, MAPSPLICE_REFERENCE.out.txt )
-    mapsplice_filter = MAPSPLICE_ANNOTATE.out.txt.map{ meta, txt -> meta.tool = "mapsplice"; return [ meta, txt ] }
+    mapsplice_filter = MAPSPLICE_ANNOTATE.out.txt.map{ meta, txt -> def name = meta.clone(); name.tool = "mapsplice"; return [ name, txt ] }
     MAPSPLICE_FILTER( mapsplice_filter, bsj_reads )
 
     ch_versions = ch_versions.mix(MAPSPLICE_REFERENCE.out.versions)
@@ -236,12 +245,27 @@ workflow CIRCRNA_DISCOVERY {
 
     ch_biotypes = Channel.fromPath("${projectDir}/bin/unwanted_biotypes.txt")
 
+    // DCC_FILTER.out.results.view()
+    // CIRIQUANT_FILTER.out.results.view()
+    // println(CIRIQUANT_FILTER.out.results.getClass())
+
+    tools_selected = params.tool.split(',').collect{it.trim().toLowerCase()}
+
+    // println(tools_selected.size())
+    // doesn't work
+    // println(reads.size())
+
     circrna_filtered = CIRCEXPLORER2_FLT.out.results.mix(SEGEMEHL_FILTER.out.results,
-                                                            CIRCRNA_FINDER_FILTER.out.results,
-                                                            FIND_CIRC_FILTER.out.results,
-                                                            CIRIQUANT_FILTER.out.results,
-                                                            DCC_FILTER.out.results,
-                                                            MAPSPLICE_FILTER.out.results)
+                                                         CIRCRNA_FINDER_FILTER.out.results,
+                                                         FIND_CIRC_FILTER.out.results,
+                                                         DCC_FILTER.out.results,
+                                                         MAPSPLICE_FILTER.out.results).groupTuple( by: 0 )
+
+                                                         //CIRIQUANT_FILTER.out.results,
+
+    circrna_filtered.view()
+
+
 
     ANNOTATION( circrna_filtered, gtf, ch_biotypes.collect(), exon_boundary )
 
@@ -251,7 +275,11 @@ workflow CIRCRNA_DISCOVERY {
     // FASTA WORKFLOW:
     //
 
+    // ANNOTATION.out.bed.view()
+    // anno_stage = ANNOTATION.out.bed.unique()
+
     FASTA( ANNOTATION.out.bed, fasta )
+    // FASTA( anno_stage, fasta )
 
     ch_versions = ch_versions.mix(FASTA.out.versions)
 
@@ -262,15 +290,15 @@ workflow CIRCRNA_DISCOVERY {
     ch_matrix = CIRCEXPLORER2_FLT.out.matrix.mix(SEGEMEHL_FILTER.out.matrix,
                                                     CIRCRNA_FINDER_FILTER.out.matrix,
                                                     FIND_CIRC_FILTER.out.matrix,
-                                                    CIRIQUANT_FILTER.out.matrix,
                                                     DCC_FILTER.out.matrix,
                                                     MAPSPLICE_FILTER.out.matrix)
 
-    tools_selected = params.tool.split(',').collect{it.trim().toLowerCase()}
+                                                    // CIRIQUANT_FILTER.out.matrix,
+
 
     if( tools_selected.size() > 1){
 
-        MERGE_TOOLS( ch_matrix.map{ meta, bed -> var = [:]; var.id = meta.id; return [ var, bed ] }.groupTuple(), tool_filter, duplicates_fun )
+        MERGE_TOOLS( ch_matrix.map{ meta, bed -> var = [:]; var.id = meta.id; return [ var, bed ] }.groupTuple().unique(), tool_filter, duplicates_fun )
 
         COUNTS_COMBINED( MERGE_TOOLS.out.merged.map{ meta, bed -> return [ bed ] }.collect() )
 
