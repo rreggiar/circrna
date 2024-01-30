@@ -42,7 +42,8 @@ process ANNOTATION {
     split_input_bed.sh circs.bed \$(( ${task.cpus} * 1 ))
 
     # parallel; process each bed file in parallel up to task.cpus (or more?)
-    ls -d splitBed/* | parallel -u -j \$(( ${task.cpus} * 1 )) annotate_outputs_parallel.sh ${exon_boundary} {} &> ${prefix}.log
+    # ls -d splitBed/* | parallel -u -j \$(( ${task.cpus} * 1 )) annotate_outputs_parallel.sh ${exon_boundary} {} &> ${prefix}.log
+    find ~+/splitBed -maxdepth 1 -type f | parallel -u -j \$(( ${task.cpus} * 1 )) annotate_outputs_parallel.sh ${exon_boundary} {} &> ${prefix}.log
 
     # clean and combine output
     aggregate_outputs.sh
