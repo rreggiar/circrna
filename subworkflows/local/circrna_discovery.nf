@@ -1,43 +1,45 @@
-include { ANNOTATION                       } from '../../modules/local/annotation/full_annotation/main'
-include { BOWTIE2_ALIGN as FIND_CIRC_ALIGN } from '../../modules/nf-core/bowtie2/align/main'
-include { SAMTOOLS_VIEW                    } from '../../modules/nf-core/samtools/view/main'
-include { SAMTOOLS_INDEX                   } from '../../modules/nf-core/samtools/index/main'
-include { FIND_CIRC_ANCHORS                } from '../../modules/local/find_circ/anchors/main'
-include { FIND_CIRC                        } from '../../modules/local/find_circ/find_circ/main'
-include { FIND_CIRC_FILTER                 } from '../../modules/local/find_circ/filter/main'
-include { CIRIQUANT_YML                    } from '../../modules/local/ciriquant/yml/main'
-include { CIRIQUANT                        } from '../../modules/local/ciriquant/ciriquant/main'
-include { CIRIQUANT_FILTER                 } from '../../modules/local/ciriquant/filter/main'
-include { CIRCRNA_FINDER_FILTER            } from '../../modules/local/circrna_finder/filter/main'
-include { SEGEMEHL_ALIGN                   } from '../../modules/nf-core/segemehl/align/main'
-include { SEGEMEHL_FILTER                  } from '../../modules/local/segemehl/filter/main'
-include { STAR_ALIGN as STAR_1ST_PASS      } from '../../modules/nf-core/star/align/main'
-include { STAR_ALIGN as STAR_2ND_PASS      } from '../../modules/nf-core/star/align/main'
-include { SJDB as STAR_SJDB                } from '../../modules/local/star/sjdb/main'
-include { STAR_ALIGN as DCC_1ST_PASS       } from '../../modules/nf-core/star/align/main'
-include { STAR_ALIGN as DCC_2ND_PASS       } from '../../modules/nf-core/star/align/main'
-include { SJDB as DCC_SJDB                 } from '../../modules/local/star/sjdb/main'
-include { STAR_ALIGN as DCC_MATE1_1ST_PASS } from '../../modules/nf-core/star/align/main'
-include { STAR_ALIGN as DCC_MATE1_2ND_PASS } from '../../modules/nf-core/star/align/main'
-include { SJDB as DCC_MATE1_SJDB           } from '../../modules/local/star/sjdb/main'
-include { STAR_ALIGN as DCC_MATE2_1ST_PASS } from '../../modules/nf-core/star/align/main'
-include { STAR_ALIGN as DCC_MATE2_2ND_PASS } from '../../modules/nf-core/star/align/main'
-include { SJDB as DCC_MATE2_SJDB           } from '../../modules/local/star/sjdb/main'
-include { DCC                              } from '../../modules/local/dcc/dcc/main'
-include { DCC_FILTER                       } from '../../modules/local/dcc/filter/main'
-include { MAPSPLICE_ALIGN                  } from '../../modules/local/mapsplice/align/main'
-include { FASTA                            } from '../../modules/local/fasta/main'
-include { MERGE_TOOLS                      } from '../../modules/local/count_matrix/merge_tools/main'
-include { COUNTS_COMBINED                  } from '../../modules/local/count_matrix/combined/main'
-include { COUNTS_SINGLE                    } from '../../modules/local/count_matrix/single/main'
-include { CIRCEXPLORER2_REFERENCE as CIRCEXPLORER2_REF } from '../../modules/local/circexplorer2/reference/main'
-include { CIRCEXPLORER2_PARSE as CIRCEXPLORER2_PAR } from '../../modules/nf-core/circexplorer2/parse/main'
-include { CIRCEXPLORER2_ANNOTATE as CIRCEXPLORER2_ANN } from '../../modules/nf-core/circexplorer2/annotate/main'
-include { CIRCEXPLORER2_FILTER as CIRCEXPLORER2_FLT } from '../../modules/local/circexplorer2/filter/main'
+
+include { ANNOTATION                                     } from '../../modules/local/annotation/full_annotation/main'
+include { BEDTOOLS_INTERSECT as INTERSECT_ANNOTATION     } from '../../modules/nf-core/bedtools/intersect/main'
+include { BOWTIE2_ALIGN as FIND_CIRC_ALIGN               } from '../../modules/nf-core/bowtie2/align/main'
+include { SAMTOOLS_VIEW                                  } from '../../modules/nf-core/samtools/view/main'
+include { SAMTOOLS_INDEX                                 } from '../../modules/nf-core/samtools/index/main'
+include { FIND_CIRC_ANCHORS                              } from '../../modules/local/find_circ/anchors/main'
+include { FIND_CIRC                                      } from '../../modules/local/find_circ/find_circ/main'
+include { FIND_CIRC_FILTER                               } from '../../modules/local/find_circ/filter/main'
+include { CIRIQUANT_YML                                  } from '../../modules/local/ciriquant/yml/main'
+include { CIRIQUANT                                      } from '../../modules/local/ciriquant/ciriquant/main'
+include { CIRIQUANT_FILTER                               } from '../../modules/local/ciriquant/filter/main'
+include { CIRCRNA_FINDER_FILTER                          } from '../../modules/local/circrna_finder/filter/main'
+include { SEGEMEHL_ALIGN                                 } from '../../modules/nf-core/segemehl/align/main'
+include { SEGEMEHL_FILTER                                } from '../../modules/local/segemehl/filter/main'
+include { STAR_ALIGN as STAR_1ST_PASS                    } from '../../modules/nf-core/star/align/main'
+include { STAR_ALIGN as STAR_2ND_PASS                    } from '../../modules/nf-core/star/align/main'
+include { SJDB as STAR_SJDB                              } from '../../modules/local/star/sjdb/main'
+include { STAR_ALIGN as DCC_1ST_PASS                     } from '../../modules/nf-core/star/align/main'
+include { STAR_ALIGN as DCC_2ND_PASS                     } from '../../modules/nf-core/star/align/main'
+include { SJDB as DCC_SJDB                               } from '../../modules/local/star/sjdb/main'
+include { STAR_ALIGN as DCC_MATE1_1ST_PASS               } from '../../modules/nf-core/star/align/main'
+include { STAR_ALIGN as DCC_MATE1_2ND_PASS               } from '../../modules/nf-core/star/align/main'
+include { SJDB as DCC_MATE1_SJDB                         } from '../../modules/local/star/sjdb/main'
+include { STAR_ALIGN as DCC_MATE2_1ST_PASS               } from '../../modules/nf-core/star/align/main'
+include { STAR_ALIGN as DCC_MATE2_2ND_PASS               } from '../../modules/nf-core/star/align/main'
+include { SJDB as DCC_MATE2_SJDB                         } from '../../modules/local/star/sjdb/main'
+include { DCC                                            } from '../../modules/local/dcc/dcc/main'
+include { DCC_FILTER                                     } from '../../modules/local/dcc/filter/main'
+include { MAPSPLICE_ALIGN                                } from '../../modules/local/mapsplice/align/main'
+include { FASTA                                          } from '../../modules/local/fasta/main'
+include { MERGE_TOOLS                                    } from '../../modules/local/count_matrix/merge_tools/main'
+include { COUNTS_COMBINED                                } from '../../modules/local/count_matrix/combined/main'
+include { COUNTS_SINGLE                                  } from '../../modules/local/count_matrix/single/main'
+include { CIRCEXPLORER2_REFERENCE as CIRCEXPLORER2_REF   } from '../../modules/local/circexplorer2/reference/main'
+include { CIRCEXPLORER2_PARSE as CIRCEXPLORER2_PAR       } from '../../modules/nf-core/circexplorer2/parse/main'
+include { CIRCEXPLORER2_ANNOTATE as CIRCEXPLORER2_ANN    } from '../../modules/nf-core/circexplorer2/annotate/main'
+include { CIRCEXPLORER2_FILTER as CIRCEXPLORER2_FLT      } from '../../modules/local/circexplorer2/filter/main'
 include { CIRCEXPLORER2_REFERENCE as MAPSPLICE_REFERENCE } from '../../modules/local/circexplorer2/reference/main'
-include { CIRCEXPLORER2_PARSE as MAPSPLICE_PARSE } from '../../modules/nf-core/circexplorer2/parse/main'
-include { CIRCEXPLORER2_ANNOTATE as MAPSPLICE_ANNOTATE } from '../../modules/nf-core/circexplorer2/annotate/main'
-include { CIRCEXPLORER2_FILTER as MAPSPLICE_FILTER } from '../../modules/local/circexplorer2/filter/main'
+include { CIRCEXPLORER2_PARSE as MAPSPLICE_PARSE         } from '../../modules/nf-core/circexplorer2/parse/main'
+include { CIRCEXPLORER2_ANNOTATE as MAPSPLICE_ANNOTATE   } from '../../modules/nf-core/circexplorer2/annotate/main'
+include { CIRCEXPLORER2_FILTER as MAPSPLICE_FILTER       } from '../../modules/local/circexplorer2/filter/main'
 
 workflow CIRCRNA_DISCOVERY {
 
@@ -59,28 +61,18 @@ workflow CIRCRNA_DISCOVERY {
 
     main:
     ch_versions = Channel.empty()
-    ch_fasta = Channel.fromPath(fasta)
-    ch_gtf   = Channel.fromPath(gtf)
+    ch_fasta = Channel.value(fasta)
+    ch_gtf   = Channel.value(gtf)
+    fasta_tuple = Channel.value([[id: "fasta"], fasta])
+    gtf_tuple = Channel.value([[id: "gtf"], gtf])
 
-    ch_fasta.map{ it ->
-        meta = [:]
-        meta.id = it.simpleName
-        return [ meta, [it] ]
-    }.set{ fasta_tuple }
-
-    gtf_tuple = ch_gtf.map{ it ->
-        meta = [:]
-        meta.id = it.simpleName
-        return [ meta, [it] ]
-    }.collect()
 
     //
     // SEGEMEHL WORKFLOW:
     //
 
     SEGEMEHL_ALIGN( reads, fasta, segemehl_index )
-    segemehl_filter = SEGEMEHL_ALIGN.out.results.map{ meta, results ->  def name = meta.clone(); name.tool = "segemehl"; return [ name, results ] }
-
+    segemehl_filter = SEGEMEHL_ALIGN.out.results.map{ meta, results ->  [ meta + [tool: "segemehl"], results ] }
     SEGEMEHL_FILTER( segemehl_filter, bsj_reads )
 
     ch_versions = ch_versions.mix(SEGEMEHL_ALIGN.out.versions)
@@ -110,7 +102,7 @@ workflow CIRCRNA_DISCOVERY {
     CIRCEXPLORER2_REF( gtf )
     CIRCEXPLORER2_PAR( STAR_2ND_PASS.out.junction )
     CIRCEXPLORER2_ANN( CIRCEXPLORER2_PAR.out.junction, fasta, CIRCEXPLORER2_REF.out.txt )
-    circexplorer2_filter = CIRCEXPLORER2_ANN.out.txt.map{ meta, txt -> def name = meta.clone(); name.tool = "circexplorer2"; return [ name, txt ] }
+    circexplorer2_filter = CIRCEXPLORER2_ANN.out.txt.map{ meta, txt -> [ meta + [tool: "circexplorer2"], txt ] }
     CIRCEXPLORER2_FLT( circexplorer2_filter, bsj_reads )
 
     // CIRCEXPLORER2_FLT.out.results.view()
@@ -125,8 +117,7 @@ workflow CIRCRNA_DISCOVERY {
     //
 
     circrna_finder_stage = STAR_2ND_PASS.out.sam.join( STAR_2ND_PASS.out.junction).join(STAR_2ND_PASS.out.tab)
-    circrna_finder_stage.view()
-    circrna_finder_filter = circrna_finder_stage.map{ meta, sam, junction, tab -> def name = meta.clone(); name.tool = "circrna_finder"; return [ name, sam, junction, tab ] }.groupTuple( by:0 )
+    circrna_finder_filter = circrna_finder_stage.map{ meta, sam, junction, tab -> [ meta + [tool: "circrna_finder"], sam, junction, tab ] }
     CIRCRNA_FINDER_FILTER( circrna_finder_filter, fasta, bsj_reads )
 
     // CIRCRNA_FINDER_FILTER.out.results.view()
@@ -142,7 +133,7 @@ workflow CIRCRNA_DISCOVERY {
     SAMTOOLS_VIEW( FIND_CIRC_ALIGN.out.aligned.join( SAMTOOLS_INDEX.out.bai ), fasta_tuple, [] )
     FIND_CIRC_ANCHORS( SAMTOOLS_VIEW.out.bam )
     FIND_CIRC( FIND_CIRC_ANCHORS.out.anchors, bowtie2_index.collect(), fasta )
-    find_circ_filter = FIND_CIRC.out.bed.map{ meta, bed -> def name = meta.clone(); name.tool = "find_circ"; return [ name, bed ] }
+    find_circ_filter = FIND_CIRC.out.bed.map{ meta, bed -> [ meta + [tool: "find_circ"], bed ] }
     FIND_CIRC_FILTER( find_circ_filter, bsj_reads )
 
     ch_versions = ch_versions.mix(FIND_CIRC_ALIGN.out.versions)
@@ -160,7 +151,7 @@ workflow CIRCRNA_DISCOVERY {
     // do not want to upset the collect declr for all indices just for this.
     CIRIQUANT_YML( gtf, fasta, bwa_index.map{ meta, index -> return index }, hisat2_index.map{ meta, index -> return index } )
     CIRIQUANT( reads, CIRIQUANT_YML.out.yml.collect() )
-    CIRIQUANT_FILTER( CIRIQUANT.out.gtf.map{ meta, gtf -> def name = meta.clone(); name.tool = "ciriquant"; return [ name, gtf ] }, bsj_reads )
+    CIRIQUANT_FILTER( CIRIQUANT.out.gtf.map{ meta, gtf -> [ meta + [tool: "ciriquant"], gtf ] }, bsj_reads )
 
     // CIRIQUANT_FILTER.out.results.view()
 
@@ -171,42 +162,30 @@ workflow CIRCRNA_DISCOVERY {
     // DCC WORKFLOW
     //
 
-    DCC_1ST_PASS( reads, star_index.collect(), gtf_tuple, star_ignore_sjdbgtf, seq_platform, seq_center )
-    DCC_SJDB( DCC_1ST_PASS.out.tab.map{ meta, tab -> return tab }.collect().map{[[id: "dcc_sjdb"], it]}, bsj_reads )
-    DCC_2ND_PASS( reads, star_index.collect(), DCC_SJDB.out.sjtab, star_ignore_sjdbgtf, seq_platform, seq_center )
-
-
-    // this should all actually be a .branch
-    // maybe the whole workflow actually ....
-    // single_end = reads.map{ meta, reads -> return meta.single_end }
-
-    // if ( single_end ) {
-
-        // dcc_stage = DCC_2ND_PASS.out.junction.map{ meta, junction -> return [ meta.id, meta, junction]}
-            // .map{ id, meta, junction -> return [ meta, junction ]}
-            // .groupTuple()
-
-    // } else {
-
-    mate1 = reads.map{ meta, reads -> return [ [id: meta.id, single_end: true], reads[0] ] }
-    DCC_MATE1_1ST_PASS( mate1, star_index.collect(), gtf_tuple, star_ignore_sjdbgtf, seq_platform, seq_center )
+    mate1 = reads.filter{ meta, reads -> !meta.single_end }.map{ meta, reads -> return [ [id: meta.id, single_end: true], reads[0] ] }
+    DCC_MATE1_1ST_PASS( mate1, star_index, gtf_tuple, star_ignore_sjdbgtf, seq_platform, seq_center )
     DCC_MATE1_SJDB( DCC_MATE1_1ST_PASS.out.tab.map{ meta, tab -> return tab }.collect().map{[[id: "mate1_sjdb"], it]}, bsj_reads )
     DCC_MATE1_2ND_PASS( mate1, star_index.collect(), DCC_MATE1_SJDB.out.sjtab, star_ignore_sjdbgtf, seq_platform, seq_center )
 
-    mate2 = reads.map{ meta, reads -> return [ [id: meta.id, single_end: true], reads[1] ] }
-    DCC_MATE2_1ST_PASS( mate2, star_index.collect(), gtf_tuple, star_ignore_sjdbgtf, seq_platform, seq_center )
+    mate2 = reads.filter{ meta, reads -> !meta.single_end }.map{ meta, reads -> return [ [id: meta.id, single_end: true], reads[1] ] }
+    DCC_MATE2_1ST_PASS( mate2, star_index, gtf_tuple, star_ignore_sjdbgtf, seq_platform, seq_center )
     DCC_MATE2_SJDB( DCC_MATE2_1ST_PASS.out.tab.map{ meta, tab -> return tab }.collect().map{[[id: "mate2_sjdb"], it]}, bsj_reads )
     DCC_MATE2_2ND_PASS( mate2, star_index.collect(), DCC_MATE2_SJDB.out.sjtab, star_ignore_sjdbgtf, seq_platform, seq_center )
 
-    dcc_stage = DCC_2ND_PASS.out.junction.map{ meta, junction -> return [ meta.id, meta, junction]}
+    dcc_stage = STAR_2ND_PASS.out.junction.map{ meta, junction -> return [ meta.id, meta, junction]}
         .join(
-            DCC_MATE1_2ND_PASS.out.junction.map{ meta, junction -> return [ meta.id, junction] }
+            DCC_MATE1_2ND_PASS.out.junction.map{ meta, junction -> return [ meta.id, junction] },
+            remainder: true
         )
         .join(
-            DCC_MATE2_2ND_PASS.out.junction.map{ meta, junction -> return [ meta.id, junction] }
+            DCC_MATE2_2ND_PASS.out.junction.map{ meta, junction -> return [ meta.id, junction] },
+            remainder: true
         )
         .map{ id, meta, junction, mate1, mate2 -> return [ meta, junction, mate1, mate2 ]}
-        .groupTuple()
+
+    dcc = dcc_stage.map{ it ->  [ it[0], it[1], it[2] ?: [], it[3] ?: [] ] }
+    DCC( dcc, fasta, gtf )
+    DCC_FILTER( DCC.out.txt.map{ meta, txt -> [ meta + [tool: "dcc"], txt ] }, bsj_reads )
 
     ch_versions = ch_versions.mix(DCC_MATE1_1ST_PASS.out.versions)
     ch_versions = ch_versions.mix(DCC_MATE1_SJDB.out.versions)
@@ -230,10 +209,10 @@ workflow CIRCRNA_DISCOVERY {
     //
 
     MAPSPLICE_REFERENCE( gtf )
-    MAPSPLICE_ALIGN( reads, bowtie_index.collect(), chromosomes, gtf )
+    MAPSPLICE_ALIGN( reads, bowtie_index.collect(), chromosomes, ch_gtf )
     MAPSPLICE_PARSE( MAPSPLICE_ALIGN.out.raw_fusions )
     MAPSPLICE_ANNOTATE( MAPSPLICE_PARSE.out.junction, fasta, MAPSPLICE_REFERENCE.out.txt )
-    mapsplice_filter = MAPSPLICE_ANNOTATE.out.txt.map{ meta, txt -> def name = meta.clone(); name.tool = "mapsplice"; return [ name, txt ] }
+    mapsplice_filter = MAPSPLICE_ANNOTATE.out.txt.map{ meta, txt -> [ meta + [tool: "mapsplice"], txt ] }
     MAPSPLICE_FILTER( mapsplice_filter, bsj_reads )
 
     ch_versions = ch_versions.mix(MAPSPLICE_REFERENCE.out.versions)
@@ -269,9 +248,10 @@ workflow CIRCRNA_DISCOVERY {
 
 
 
-    ANNOTATION( circrna_filtered, gtf, ch_biotypes.collect(), exon_boundary )
+    INTERSECT_ANNOTATION( circrna_filtered.combine(ch_gtf), [[], []])
+    ANNOTATION( INTERSECT_ANNOTATION.out.intersect, exon_boundary )
 
-    ch_versions = ch_versions.mix(ANNOTATION.out.versions)
+    ch_versions = ch_versions.mix(INTERSECT_ANNOTATION.out.versions)
 
     //
     // FASTA WORKFLOW:
@@ -300,7 +280,7 @@ workflow CIRCRNA_DISCOVERY {
 
     if( tools_selected.size() > 1){
 
-        MERGE_TOOLS( ch_matrix.map{ meta, bed -> var = [:]; var.id = meta.id; return [ var, bed ] }.groupTuple().unique(), tool_filter, duplicates_fun )
+        MERGE_TOOLS( ch_matrix.map{ meta, bed -> [ [id: meta.id], bed ] }.groupTuple(), tool_filter, duplicates_fun )
 
         COUNTS_COMBINED( MERGE_TOOLS.out.merged.map{ meta, bed -> return [ bed ] }.collect() )
 
@@ -311,7 +291,7 @@ workflow CIRCRNA_DISCOVERY {
 
     }else{
 
-        COUNTS_SINGLE( ch_matrix.map{ meta, bed -> var = [:]; var.tool = meta.tool; return [ var, bed ] }.groupTuple() )
+        COUNTS_SINGLE( ch_matrix.map{ meta, bed -> [ [tool: meta.tool], bed ] }.groupTuple() )
 
         dea_matrix = COUNTS_SINGLE.out.dea_matrix
         clr_matrix = COUNTS_SINGLE.out.clr_matrix

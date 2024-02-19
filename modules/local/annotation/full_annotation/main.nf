@@ -1,65 +1,108 @@
 process ANNOTATION {
-    tag "${meta.id}:${meta.tool}"
-    label 'process_high'
+    tag "$meta.id"
+    label 'process_single'
 
-    conda "bioconda::ucsc-gtftogenepred=377 bioconda::ucsc-genepredtobed=377 bioconda::bedtools=2.27.0"
-    // RER
-    // breaking change!!!
-    // this only works on sherlock
+    conda "bioconda::pandas=1.5.2"
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
-        '/home/users/rreggiar/rreggiar_dev/singularity/sra/getreads_mamba_AMD.sif' :
-        'quay.io/biocontainers/mulled-v2-d7ee3552d06d8acebbc660507b48487c7369e221:07daadbfe8182aa3c974c7b78924d5c8730b922d-0' }"
+        'https://depot.galaxyproject.org/singularity/pandas:1.5.2' :
+        'quay.io/biocontainers/pandas:1.5.2' }"
 
     input:
-    tuple val(meta), path(bed)
-    path gtf
-    path biotypes
-    val exon_boundary
-
+    tuple val(meta), path(intersection)
+    val(exon_boundary)
 
     output:
-    tuple val(meta), path("${prefix}.bed"), emit: bed
-    path("*.log")                         , emit: log
-    path  "versions.yml"                  , emit: versions
-
-    when:
-    task.ext.when == null || task.ext.when
+    tuple val(meta), path("${meta.id}.annotation.bed"), emit: bed
 
     script:
-    def args = task.ext.args ?: ''
-    prefix = task.ext.prefix ?: "${meta.id}"
-    def VERSION = '377'
     """
-    # RER
-    # breaking change!!!
-    # this only works on sherlock
-    source /etc/conda/etc/profile.d/conda.sh
-    conda activate rreggiar
+    #!/usr/bin/env python
 
-    grep -vf $biotypes $gtf > filt.gtf
-    mv $bed circs.bed
-    # parallel; split bed into file per-line
-    split_input_bed.sh circs.bed \$(( ${task.cpus} * 1 ))
+    import pandas as pd
+    import numpy as np
 
-    # parallel; process each bed file in parallel up to task.cpus (or more?)
-    # ls -d splitBed/* | parallel -u -j \$(( ${task.cpus} * 1 )) annotate_outputs_parallel.sh ${exon_boundary} {} &> ${prefix}.log
-    find ~+/splitBed -maxdepth 1 -type f | parallel -u -j \$(( ${task.cpus} * 1 )) annotate_outputs_parallel.sh ${exon_boundary} {} &> ${prefix}.log
+    columns = {
+        0: 'chr',
+        1: 'start',
+        2: 'end',
+        3: 'name',
+        4: 'score',
+        5: 'strand',
+        9: 'tx_start',
+        10: 'tx_end',
+        14: 'attributes'
+    }
 
-    # clean and combine output
-    aggregate_outputs.sh
+    attributes = ['gene_id', 'transcript_id']
 
-    mv master_bed12.bed ${prefix}.bed.tmp
+    exon_boundary = ${exon_boundary}
 
-    awk -v FS="\t" '{print \$11}' ${prefix}.bed.tmp > mature_len.tmp
-    awk -v FS="," '{for(i=t=0;i<NF;) t+=\$++i; \$0=t}1' mature_len.tmp > mature_length
+    df = pd.read_csv("${intersection}", sep="\\t", header=None, usecols=columns.keys())
+    df = df.rename(columns=columns)
 
-    paste ${prefix}.bed.tmp mature_length > ${prefix}.bed
+    # Extract circRNAs without match
+    mask = df['tx_start'] == -1
+    df_intergenic = df[mask]
+    df = df[~mask]
+    df_intergenic['type'] = 'intergenic-circRNA'
+    df_intergenic['gene_id'] = 'NaN'
+    df_intergenic['transcript_id'] = 'NaN'
 
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        awk: \$(awk -W version | head -n1 | cut -d' ' -f3 | sed 's/,//g' )
-        bedtools: \$(bedtools --version | sed -e "s/bedtools v//g")
-        ucsc: $VERSION
-    END_VERSIONS
+    # Convert attributes to a dictionary
+    df['attributes'] = df['attributes'].apply(lambda row: dict([[value.strip(r'"') for value in entry.strip().split(' ')] for entry in row.split(';') if entry]))
+    # Keep only the attributes we want
+    df['attributes'] = df['attributes'].apply(lambda row: {key: row[key] for key in attributes if key in row})
+    # Convert attributes to columns
+    df = pd.concat([df.drop(['attributes'], axis=1), df['attributes'].apply(pd.Series)], axis=1)
+
+    df['any_outside'] = (df['start'] < df['tx_start'] - exon_boundary) | (df['end'] > df['tx_end'] + exon_boundary)
+    # Perfect is inverse of any_outside
+    df['perfect'] = ~df['any_outside']
+    # Drop any_outside
+    df = df.drop(['any_outside', 'tx_start', 'tx_end'], axis=1)
+
+    df = df.groupby(['chr', 'start', 'end', 'strand']).aggregate({
+        'name': lambda x: x.iloc[0],
+        'score': lambda x: x.iloc[0],
+        'gene_id': lambda x: list(x),
+        'transcript_id': lambda x: list(x),
+        'perfect': lambda x: list(x)
+    })
+
+    def filter_perfect(row, col):
+        if any(row['perfect']):
+            matching_values = [value for value, perfectness in zip(row[col], row['perfect']) if perfectness]
+        else:
+            matching_values = row[col]
+        valid_values = set([value for value in matching_values if type(value) == str])
+        return ",".join(valid_values) if valid_values else "NaN"
+
+    def determine_type(row):
+        if row["no_transcript"]:
+            return "ciRNA"
+        if any(row['perfect']):
+            return "circRNA"
+        else:
+            return 'EI-circRNA'
+
+    df['no_transcript'] = df['transcript_id'].apply(lambda x: all([type(value) != str and np.isnan(value) for value in x]))
+    df['type'] = df.apply(lambda row: determine_type(row), axis=1)
+    df['gene_id'] = df.apply(lambda row: filter_perfect(row, 'gene_id'), axis=1)
+    df['transcript_id'] = df.apply(lambda row: filter_perfect(row, 'transcript_id'), axis=1)
+    # Drop perfect
+    df = df.drop(['perfect'], axis=1)
+
+    df = df.reset_index()
+    df_intergenic = df_intergenic.reset_index()
+    bed_order = ['chr', 'start', 'end', 'name', 'score', 'strand', 'type', 'gene_id', 'transcript_id']
+    df = df[bed_order]
+    df_intergenic = df_intergenic[bed_order]
+
+    df = pd.concat([df, df_intergenic], axis=0)
+
+    # Sort by chr, start, end
+    df = df.sort_values(['chr', 'start', 'end'])
+
+    df.to_csv('${meta.id}.annotation.bed', sep='\\t', index=False, header=False)
     """
 }

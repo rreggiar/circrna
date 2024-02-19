@@ -141,6 +141,9 @@ workflow CIRCRNA {
     }
     .set { ch_fastq }
     ch_versions = ch_versions.mix(INPUT_CHECK.out.versions)
+    // TODO: OPTIONAL, you can use nf-validation plugin to create an input channel from the samplesheet with Channel.fromSamplesheet("input")
+    // See the documentation https://nextflow-io.github.io/nf-validation/samplesheets/fromSamplesheet/
+    // ! There is currently no tooling to help you write a sample sheet schema
 
     // MODULE:
     // Concatenate FastQ files from same sample if required
@@ -435,6 +438,13 @@ workflow.onComplete {
     NfcoreTemplate.summary(workflow, params, log)
     if (params.hook_url) {
         NfcoreTemplate.IM_notification(workflow, params, summary_params, projectDir, log)
+    }
+}
+
+workflow.onError {
+    if (workflow.errorReport.contains("Process requirement exceeds available memory")) {
+        println("🛑 Default resources exceed availability 🛑 ")
+        println("💡 See here on how to configure pipeline: https://nf-co.re/docs/usage/configuration#tuning-workflow-resources 💡")
     }
 }
 

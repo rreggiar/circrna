@@ -8,7 +8,43 @@ nextflow run nf-core/circrna -profile test,<docker/singularity/podman/institute>
 
 # Running the pipeline
 
-A typical command for running the pipeline is as follows:
+The `sample` identifiers have to be the same when you have re-sequenced the same sample more than once e.g. to increase sequencing depth. The pipeline will concatenate the raw reads before performing any downstream analysis. Below is an example for the same sample sequenced across 3 lanes:
+
+```csv title="samplesheet.csv"
+sample,fastq_1,fastq_2
+CONTROL_REP1,AEG588A1_S1_L002_R1_001.fastq.gz,AEG588A1_S1_L002_R2_001.fastq.gz
+CONTROL_REP1,AEG588A1_S1_L003_R1_001.fastq.gz,AEG588A1_S1_L003_R2_001.fastq.gz
+CONTROL_REP1,AEG588A1_S1_L004_R1_001.fastq.gz,AEG588A1_S1_L004_R2_001.fastq.gz
+```
+
+### Full samplesheet
+
+The pipeline will auto-detect whether a sample is single- or paired-end using the information provided in the samplesheet. The samplesheet can have as many columns as you desire, however, there is a strict requirement for the first 3 columns to match those defined in the table below.
+
+A final samplesheet file consisting of both single- and paired-end data may look something like the one below. This is for 6 samples, where `TREATMENT_REP3` has been sequenced twice.
+
+```csv title="samplesheet.csv"
+sample,fastq_1,fastq_2
+CONTROL_REP1,AEG588A1_S1_L002_R1_001.fastq.gz,AEG588A1_S1_L002_R2_001.fastq.gz
+CONTROL_REP2,AEG588A2_S2_L002_R1_001.fastq.gz,AEG588A2_S2_L002_R2_001.fastq.gz
+CONTROL_REP3,AEG588A3_S3_L002_R1_001.fastq.gz,AEG588A3_S3_L002_R2_001.fastq.gz
+TREATMENT_REP1,AEG588A4_S4_L003_R1_001.fastq.gz,
+TREATMENT_REP2,AEG588A5_S5_L003_R1_001.fastq.gz,
+TREATMENT_REP3,AEG588A6_S6_L003_R1_001.fastq.gz,
+TREATMENT_REP3,AEG588A6_S6_L004_R1_001.fastq.gz,
+```
+
+| Column    | Description                                                                                                                                                                            |
+| --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `sample`  | Custom sample name. This entry will be identical for multiple sequencing libraries/runs from the same sample. Spaces in sample names are automatically converted to underscores (`_`). |
+| `fastq_1` | Full path to FastQ file for Illumina short reads 1. File has to be gzipped and have the extension ".fastq.gz" or ".fq.gz".                                                             |
+| `fastq_2` | Full path to FastQ file for Illumina short reads 2. File has to be gzipped and have the extension ".fastq.gz" or ".fq.gz".                                                             |
+
+An [example samplesheet](../assets/samplesheet.csv) has been provided with the pipeline.
+
+## Running the pipeline
+
+The typical command for running the pipeline is as follows:
 
 ```bash
 nextflow run nf-core/circrna --input ./samplesheet.csv --outdir ./results --genome GRCh37 -profile docker
@@ -99,18 +135,18 @@ When running the differential expression analysis module via the `--module diffe
 
 ```R
 colnames(phenotype)
- [1] 'Sample_ID' 'condition'
+  [1] 'Sample_ID' 'condition'
 
 print(dds$design)
- [1] ' ~ condition'
+  [1] ' ~ condition'
 ```
 
 ```R
 colnames(phenotype)
- [1] 'Sample_ID' 'condition' 'replicates' 'location'
+  [1] 'Sample_ID' 'condition' 'replicates' 'location'
 
 print(dds$design)
- [1] ' ~ location + replicates + condition'
+  [1] ' ~ location + replicates + condition'
 ```
 
 It is recommended to construct your input CSV file in conjunction with your phenotype file as the first column denoting sample names **must match** the first column of the `phenotype.csv` file.
@@ -310,36 +346,26 @@ Specify the path to a specific config file (this is a core Nextflow command). Se
 
 Whilst the default requirements set within the pipeline will hopefully work for most people and with most input data, you may find that you want to customise the compute resources that the pipeline requests. Each step in the pipeline has a default set of requirements for number of CPUs, memory and time. For most of the steps in the pipeline, if the job exits with any of the error codes specified [here](https://github.com/nf-core/rnaseq/blob/4c27ef5610c87db00c3c5a3eed10b1d161abf575/conf/base.config#L18) it will automatically be resubmitted with higher requests (2 x original, then 3 x original). If it still fails after the third attempt then the pipeline execution is stopped.
 
-For example, if the nf-core/rnaseq pipeline is failing after multiple re-submissions of the `STAR_ALIGN` process due to an exit code of `137` this would indicate that there is an out of memory issue:
+To change the resource requests, please see the [max resources](https://nf-co.re/docs/usage/configuration#max-resources) and [tuning workflow resources](https://nf-co.re/docs/usage/configuration#tuning-workflow-resources) section of the nf-core website.
 
-```console
-[62/149eb0] NOTE: Process `NFCORE_RNASEQ:RNASEQ:ALIGN_STAR:STAR_ALIGN (WT_REP1)` terminated with an error exit status (137) -- Execution is retried (1)
-Error executing process > 'NFCORE_RNASEQ:RNASEQ:ALIGN_STAR:STAR_ALIGN (WT_REP1)'
+### Custom Containers
 
-Caused by:
-    Process `NFCORE_RNASEQ:RNASEQ:ALIGN_STAR:STAR_ALIGN (WT_REP1)` terminated with an error exit status (137)
+In some cases you may wish to change which container or conda environment a step of the pipeline uses for a particular tool. By default nf-core pipelines use containers and software from the [biocontainers](https://biocontainers.pro/) or [bioconda](https://bioconda.github.io/) projects. However in some cases the pipeline specified version maybe out of date.
 
-Command executed:
-    STAR \
-        --genomeDir star \
-        --readFilesIn WT_REP1_trimmed.fq.gz  \
-        --runThreadN 2 \
-        --outFileNamePrefix WT_REP1. \
-        <TRUNCATED>
+To use a different container from the default container or conda environment specified in a pipeline, please see the [updating tool versions](https://nf-co.re/docs/usage/configuration#updating-tool-versions) section of the nf-core website.
 
-Command exit status:
-    137
+### Custom Tool Arguments
 
-Command output:
-    (empty)
+A pipeline might not always support every possible argument or option of a particular tool used in pipeline. Fortunately, nf-core pipelines provide some freedom to users to insert additional parameters that the pipeline does not include by default.
 
 Command error:
-    .command.sh: line 9:  30 Killed    STAR --genomeDir star --readFilesIn WT_REP1_trimmed.fq.gz --runThreadN 2 --outFileNamePrefix WT_REP1. <TRUNCATED>
+.command.sh: line 9: 30 Killed STAR --genomeDir star --readFilesIn WT_REP1_trimmed.fq.gz --runThreadN 2 --outFileNamePrefix WT_REP1. <TRUNCATED>
 Work dir:
-    /home/pipelinetest/work/9d/172ca5881234073e8d76f2a19c88fb
+/home/pipelinetest/work/9d/172ca5881234073e8d76f2a19c88fb
 
 Tip: you can replicate the issue by changing to the process work dir and entering the command `bash .command.run`
-```
+
+````
 
 To change the resource requests, please see the [max resources](https://nf-co.re/docs/usage/configuration#max-resources) and [tuning workflow resources](https://nf-co.re/docs/usage/configuration#tuning-workflow-resources) section of the nf-core website.
 
@@ -363,7 +389,7 @@ process {
         memory = 100.GB
     }
 }
-```
+````
 
 > **NB:** We specify the full process name i.e. `NFCORE_RNASEQ:RNASEQ:ALIGN_STAR:STAR_ALIGN` in the config file because this takes priority over the short name (`STAR_ALIGN`) and allows existing configuration using the full process name to be correctly overridden.
 >
