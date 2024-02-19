@@ -329,7 +329,12 @@ workflow CIRCRNA {
                                                 ch_dcc_results,
                                                 ch_segemehl_results)
     ch_annotation = Channel.empty()
-    ANNOTATION( ch_forAnnotation , ch_gtf, ch_biotypes.collect(), params.exon_boundary )
+    // ANNOTATION( ch_forAnnotation , ch_gtf, ch_biotypes.collect(), params.exon_boundary )
+
+    INTERSECT_ANNOTATION( ch_forAnnotation.combine(ch_gtf), [[], []])
+    ANNOTATION( INTERSECT_ANNOTATION.out.intersect, params.exon_boundary )
+
+    ch_versions = ch_versions.mix(INTERSECT_ANNOTATION.out.versions)
 
     ch_annotation = ANNOTATION.out.bed
 
